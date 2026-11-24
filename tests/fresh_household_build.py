@@ -1,7 +1,7 @@
 """New household on an empty lot: back to setup keeps the town, reroll, build rooms, furnish, a week of outings, save and reload."""
 import asyncio, json
 from playwright.async_api import async_playwright
-from common import URL, SHOTS as S, launch_opts
+from common import URL, SHOTS as S, launch_opts, pick_traits
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(**launch_opts())
@@ -11,7 +11,8 @@ async def main():
         pg.on('console', lambda m: errs.append(m.type+': '+m.text) if m.type=='error' and 'TUNNEL' not in m.text and '404' not in m.text else None)
         await pg.goto(URL); await pg.wait_for_timeout(1200)
         await pg.tap('#wn'); await pg.wait_for_timeout(500)
-        await pg.evaluate("()=>{const st=__ML.UI.casSt;st.members.push({first:'Ivy',last:st.members[0].last,app:st.members[0].app,traits:[]});}")
+        await pg.evaluate("()=>{const st=__ML.UI.casSt;st.members.push({first:'Ivy',last:st.members[0].last,app:st.members[0].app,traits:['bookworm','cheerful','green']});}")
+        await pick_traits(pg)
         await pg.tap('#cas [data-x="done"]'); await pg.wait_for_timeout(900)
         print('pick open', await pg.evaluate("()=>({on:__ML.TV.on,mode:__ML.TV.mode,town:__ML.getTown().name})"))
         # back returns to CAS, done reopens the town
@@ -61,7 +62,7 @@ async def main():
                 for(let i=0;i<2880;i++)M.gameStep(.5);return {{out,went:s?s.first+'->'+id:'-',money:G.money,fish:G.fish,needs:M.household().map(s=>s.first+':'+Math.round(Math.min(...Object.values(s.needs)))+':'+(s.away?'away':'home'))}}}}""")
             print('day', d+1, json.dumps(r))
         await pg.screenshot(path=S+'tz3_week.png')
-        for k in range(4):
+        for k in range(12):  # random work events can stack up during the week
             if await pg.evaluate("()=>!document.getElementById('modal').classList.contains('hidden')"):
                 print('modal:', (await pg.evaluate("()=>document.getElementById('mcard').innerText.split(String.fromCharCode(10)).join(' | ')"))[:160])
                 await pg.evaluate("()=>document.querySelector('#mcard button').click()"); await pg.wait_for_timeout(400)

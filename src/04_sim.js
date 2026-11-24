@@ -97,25 +97,36 @@ function pathTo(s,x,y,adj){const p=findPath(s.tx(),s.ty(),x,y,adj);if(!p)return 
 // slots: where a sim stands or sits to use an object
 function slotsFor(o,kind){
  const d=o.def,X=o.x,Y=o.y,w=d.w,h=d.h,L=[];const add=(key,ax,ay,px,py,dir,inside,ex)=>L.push(Object.assign({key,ax,ay,px,py,dir,inside,kind},ex||{}));
+ const r=turnsOf(d)?(o.rot||0):0,face=FACES[r],[vx,vy]=FVEC[r],at=(x,y,dir,key,ex)=>add(key,x,y,x*T+8,y*T+9,dir,false,ex);
  switch(kind){
-  case 'front':{const fd=d.frontDir||'up';for(let i=0;i<w;i++)add('f'+i,X+i,Y+h,(X+i)*T+8,(Y+h)*T+9,fd,false);
-   add('fw',X-1,Y+h-1,(X-1)*T+8,(Y+h-1)*T+9,'right',false,{fb:1});add('fe',X+w,Y+h-1,(X+w)*T+8,(Y+h-1)*T+9,'left',false,{fb:1});
-   if(d.out||d.plot||d.easel)for(let i=0;i<w;i++)add('fn'+i,X+i,Y-1,(X+i)*T+8,(Y-1)*T+9,'down',false,{fb:1});break;}
-  case 'sit':{for(let i=0;i<w;i++){if(!o.rot)add('s'+i,X+i,Y+1,(X+i)*T+8,Y*T+13,'down',true,{alt:[[X-1,Y],[X+w,Y]]});else add('s'+i,X+i,Y-1,(X+i)*T+8,Y*T+12,'up',true,{alt:[[X-1,Y],[X+w,Y]]});}break;}
+  case 'front':{const fd=d.frontDir==='down'?face:OPPF[face],back=d.out||d.plot||d.easel;
+   if(r===0){for(let i=0;i<w;i++)add('f'+i,X+i,Y+h,(X+i)*T+8,(Y+h)*T+9,fd,false);
+    add('fw',X-1,Y+h-1,(X-1)*T+8,(Y+h-1)*T+9,'right',false,{fb:1});add('fe',X+w,Y+h-1,(X+w)*T+8,(Y+h-1)*T+9,'left',false,{fb:1});
+    if(back)for(let i=0;i<w;i++)add('fn'+i,X+i,Y-1,(X+i)*T+8,(Y-1)*T+9,'down',false,{fb:1});}
+   else if(r===1){for(let i=0;i<w;i++)at(X+i,Y-1,fd,'f'+i);at(X-1,Y,'right','fw',{fb:1});at(X+w,Y,'left','fe',{fb:1});if(back)for(let i=0;i<w;i++)at(X+i,Y+h,'up','fn'+i,{fb:1});}
+   else{const fx=r===2?X-1:X+w,bx=r===2?X+w:X-1;for(let i=0;i<h;i++)at(fx,Y+i,fd,'f'+i);at(X,Y-1,'down','fw',{fb:1});at(X,Y+h,'up','fe',{fb:1});if(back)for(let i=0;i<h;i++)at(bx,Y+i,face,'fn'+i,{fb:1});}
+   break;}
+  case 'sit':{if(r>=2){for(let i=0;i<h;i++)add('s'+i,r===2?X-1:X+w,Y+i,X*T+8,(Y+i)*T+12,face,true,{alt:[i===0?[X,Y-1]:null,i===h-1?[X,Y+h]:null].filter(Boolean)});break;}
+   for(let i=0;i<w;i++){if(!r)add('s'+i,X+i,Y+1,(X+i)*T+8,Y*T+13,'down',true,{alt:[[X-1,Y],[X+w,Y]]});else add('s'+i,X+i,Y-1,(X+i)*T+8,Y*T+12,'up',true,{alt:[[X-1,Y],[X+w,Y]]});}break;}
   case 'lie':{for(let i=0;i<w;i++){const c=[];if(i===0)c.push([X-1,Y+1],[X-1,Y]);if(i===w-1)c.push([X+w,Y+1],[X+w,Y]);c.push([X+i,Y+h]);
     add('b'+i,c[0][0],c[0][1],(X+i)*T+8,Y*T+16,'down',true,{alt:c.slice(1),lie:1});}break;}
-  case 'in':{const off=d.inPos||(o.type==='tub'?[12,6]:o.type==='toilet'||o.type==='toilet_lux'?[8,13]:[8,11]);add('i',X,Y+h,X*T+off[0],Y*T+off[1],d.inDir||'down',true,{alt:[[X-1,Y],[X+w,Y],[X+1,Y+h]],lie:o.type==='tub'?1:0});break;}
+  case 'in':{const off=d.inPos||(o.type==='tub'?[12,6]:o.type==='toilet'||o.type==='toilet_lux'?[8,13]:[8,11]),idir=d.inDir==='up'?OPPF[face]:face;
+   if(r===0){add('i',X,Y+h,X*T+off[0],Y*T+off[1],d.inDir||'down',true,{alt:[[X-1,Y],[X+w,Y],[X+1,Y+h]],lie:o.type==='tub'?1:0});break;}
+   const toi=o.type==='toilet'||o.type==='toilet_lux',px=r===2?(toi?7:8):r===3?(toi?9:8):off[0],py=r===1?(toi?8:off[1]-1):(toi?11:off[1]);
+   add('i',X+vx,Y+vy,X*T+px,Y*T+py,idir,true,{alt:r===1?[[X-1,Y],[X+1,Y]]:[[X,Y-1],[X,Y+1]]});break;}
   case 'chess':add('c0',X,Y+1,X*T+8,(Y+1)*T+9,'up',false);add('c1',X,Y-1,X*T+8,(Y-1)*T+9,'down',false);break;
-  case 'pc':add('p0',X,Y+1,X*T+8,(Y+1)*T+9,'up',false);break;
+  case 'pc':at(X+vx,Y+vy,OPPF[face],'p0');break;
   case 'near':{let k=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){if(!dx&&!dy)continue;const ax=X+dx,ay=Y+dy;if(freeTile(ax,ay))add('n'+(k++),ax,ay,ax*T+8,ay*T+9,dy>0?'up':dy<0?'down':dx>0?'left':'right',false);}break;}
-  case 'tvstand':{for(let i=0;i<w;i++)for(const dy of[2,3,1])add('t'+i+dy,X+i,Y+h+dy-1,(X+i)*T+8,(Y+h+dy-1)*T+9,'up',false);break;}
+  case 'tvstand':{if(r>=2){for(let i=0;i<h;i++)for(const k of[2,3,1])at(r===2?X-k:X+w-1+k,Y+i,OPPF[face],'t'+i+k);break;}
+   for(let i=0;i<w;i++)for(const dy of[2,3,1]){const ty=r?Y-dy:Y+h+dy-1;add('t'+i+dy,X+i,ty,(X+i)*T+8,ty*T+9,r?'down':'up',false);}break;}
  }
  return L;
 }
 function pickSlot(s,o,kind,D){
  D=D||distField(s.tx(),s.ty());let best=null,bd=Infinity,taken=0,tot=0;
- for(const sl of slotsFor(o,kind)){const opts=[[sl.ax,sl.ay]].concat(sl.alt||[]);if(!opts.some(([ax,ay])=>freeTile(ax,ay)))continue;tot++;if(o.users[sl.key]&&o.users[sl.key]!==s.id){taken++;continue;}
-for(const[ax,ay]of opts){if(!freeTile(ax,ay))continue;const dd=D[I(ax,ay)]+(sl.fb?6:0)+(ax!==sl.ax||ay!==sl.ay?3:0);if(dd<bd){bd=dd;best=Object.assign({},sl,{ax,ay});}break;}}
+ const ok=(x,y)=>freeTile(x,y)&&sameSide(o,x,y);
+ for(const sl of slotsFor(o,kind)){const opts=[[sl.ax,sl.ay]].concat(sl.alt||[]);if(!opts.some(([ax,ay])=>ok(ax,ay)))continue;tot++;if(o.users[sl.key]&&o.users[sl.key]!==s.id){taken++;continue;}
+for(const[ax,ay]of opts){if(!ok(ax,ay))continue;const dd=D[I(ax,ay)]+(sl.fb?6:0)+(ax!==sl.ax||ay!==sl.ay?3:0);if(dd<bd){bd=dd;best=Object.assign({},sl,{ax,ay});}break;}}
  if(!best)pickSlot.full=tot>0&&taken===tot;return best;
 }
 const STEP={
@@ -154,8 +165,8 @@ const STEP={
   if(st.el<S.dur)return'run';resolveSocial(s,t,st.key);t.holdFor=null;if(!t.inObj)t.anim.pose='idle';return'done';},
  seat(s,a,st){const pr=st.purpose;let best=null,bd=Infinity,bt=null;const D=distField(s.tx(),s.ty());
   for(const o of G.objects){if(!o.def.seat)continue;for(const sl of slotsFor(o,'sit')){if(o.users[sl.key])continue;const opts=[[sl.ax,sl.ay]].concat(sl.alt||[]);let dd=Infinity,ax,ay;
-    for(const[x,y]of opts){if(freeTile(x,y)&&D[I(x,y)]<dd){dd=D[I(x,y)];ax=x;ay=y;}}if(dd===Infinity)continue;
-    let tbl=null;if(pr==='eat'){const tx=o.x+Number(sl.key.slice(1)),ty=o.rot?o.y-1:o.y+1;const t2=objAt(tx,ty);if(t2&&t2.def.table)tbl={o:t2,x:tx,y:ty};}
+    for(const[x,y]of opts){if(freeTile(x,y)&&sameSide(o,x,y)&&D[I(x,y)]<dd){dd=D[I(x,y)];ax=x;ay=y;}}if(dd===Infinity)continue;
+    let tbl=null;if(pr==='eat'){const sr=turnsOf(o.def)?(o.rot||0):0,fv=FVEC[sr],si=Number(sl.key.slice(1)),tx=o.x+(sr>=2?0:si)+fv[0],ty=o.y+(sr>=2?si:0)+fv[1];const t2=objAt(tx,ty);if(t2&&t2.def.table)tbl={o:t2,x:tx,y:ty};}
     const sc=dd+(pr==='eat'&&!tbl?14:0)+(st.near?Math.hypot(o.x-st.near.x,o.y-st.near.y)*1.5:0);
     if(sc<bd&&dd<40){bd=sc;best={o,sl:Object.assign({},sl,{ax,ay})};bt=tbl;}}}
   const base={rates:st.rates,xp:st.xp,min:st.min,max:st.max,fill:st.fill,onEnd:st.onEnd,tick:st.tick,onDo:st.onDo};
@@ -234,10 +245,11 @@ const ACTS={
  payBills:{l:'Pay Bills',i:'coin',avail:()=>G.bills?true:'No bills right now',build:(s,o)=>useAct('payBills',o,'front','use',{min:3,max:3,onEnd:()=>payBills()})},
 };
 function tvAct(id,label,s,o,opt){
- const D=distField(s.tx(),s.ty());let best=null,bd=Infinity;const cx=o.x+o.def.w/2;
- for(const so of G.objects){if(!so.def.seat||so.rot!==1)continue;if(so.y<=o.y||so.y-o.y>7)continue;
-  for(const sl of slotsFor(so,'sit')){if(so.users[sl.key])continue;const sx=so.x+Number(sl.key.slice(1))+.5;if(Math.abs(sx-cx)>2.6)continue;const opts=[[sl.ax,sl.ay]].concat(sl.alt||[]);
-   for(const[x,y]of opts)if(freeTile(x,y)&&D[I(x,y)]<bd){bd=D[I(x,y)];best={so,sl:Object.assign({},sl,{ax:x,ay:y})};}}}
+ const D=distField(s.tx(),s.ty());let best=null,bd=Infinity;const tr=turnsOf(o.def)?(o.rot||0):0,[fx,fy]=FVEC[tr],cx=o.x+o.def.w/2,cy=o.y+o.def.h/2;
+ for(const so of G.objects){if(!so.def.seat||(turnsOf(so.def)?(so.rot||0):0)!==OPP_ROT[tr]||!sameSide(o,so.x,so.y))continue;
+  for(const sl of slotsFor(so,'sit')){if(so.users[sl.key])continue;const si=Number(sl.key.slice(1)),sw=(so.rot||0)>=2,dx=so.x+(sw?0:si)+.5-cx,dy=so.y+(sw?si:0)+.5-cy,along=dx*fx+dy*fy,across=Math.abs(dx*fy-dy*fx);
+   if(along<=0||along>7.5||across>2.6)continue;const opts=[[sl.ax,sl.ay]].concat(sl.alt||[]);
+   for(const[x,y]of opts)if(freeTile(x,y)&&sameSide(so,x,y)&&D[I(x,y)]<bd){bd=D[I(x,y)];best={so,sl:Object.assign({},sl,{ax:x,ay:y})};}}}
  const on={onDo:(s,a,st)=>{o.state.on=(o.state.on||0)+1;if(opt.onDo)opt.onDo(s,a,st);},onEnd:(s,a,st)=>{o.state.on=Math.max(0,(o.state.on||1)-1);if(st.el>=60&&id==='watchTV')addMood(s,'hadFun');if(opt.onEnd)opt.onEnd(s,a,st);}};
  const step=best?Object.assign({k:'use',obj:best.so,slot:'sit',pose:'watch',fixedSlot:best.sl},opt,on):Object.assign({k:'use',obj:o,slot:'tvstand',pose:'idle'},opt,on);
  return A(id,label,ACTS[id].i,[step],{obj:o});

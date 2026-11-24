@@ -1,6 +1,6 @@
 // ================= GAME: state, time, work, visitors, weather, wishes, saving =================
 const G={time:0,speed:1,money:0,people:[],sel:null,rels:{},objects:[],items:[],inv:[],produce:{},bills:null,timers:[],cars:[],
- season:2,seasonStart:2,weather:'clear',mode:'live',freeWill:'full',paused:false,day:0,settings:{music:true,sfx:true,smooth:true},stats:{},party:null,started:false,lot:'cottage',fresh:false,tut:{done:{}},town:{seed:2611},home:null,fish:{}};
+ season:2,seasonStart:2,weather:'clear',mode:'live',freeWill:'full',paused:false,day:0,settings:{music:true,sfx:true,smooth:true},stats:{},party:null,started:false,lot:'cottage',fresh:false,tut:{done:{}},town:{seed:2611},home:null,fish:{},ext:defaultExt()};
 function pay(n,s){if(!n)return;G.money-=n;if(s&&s.onLot&&n>=3)fxText(s.x,s.y-30,'-'+money(n),'#ffb3a8');UI.dirty=true;}
 function earn(n,s){if(!n)return;G.money+=n;if(s&&s.onLot)fxText(s.x,s.y-30,'+'+money(n),'#9fe870');sfx('cash');UI.dirty=true;for(const p of household())wishCheck(p);}
 
@@ -177,7 +177,7 @@ const STARTER_FURN=[['fridge',7,5],['counter',8,5],['sink_k',9,5],['stove',10,5]
  ['mailbox',14,19],['streetlamp',3,19],['streetlamp',24,19]];
 function furnishStarter(outdoorOnly){for(const[t,x,y,o]of STARTER_FURN){if(outdoorOnly&&!isYardItem(t))continue;addObject(t,x,y,Object.assign({},o||{}));}for(const o of G.objects)o.bought=1;}
 function isYardItem(t){const d=CATALOG[t];return!!(d&&(d.c==='outdoor'||d.fixed));}
-function resetState(){TEXTS.length=0;PARTS.length=0;const tb=document.getElementById('toasts');if(tb)tb.innerHTML='';G.time=0;G.people=[];G.rels={};G.objects=[];G.items=[];G.inv=[];G.produce={};G.bills=null;G.timers=[];G.cars=[];G.party=null;G.stats={};G.day=0;G.fish={};}
+function resetState(){TEXTS.length=0;PARTS.length=0;const tb=document.getElementById('toasts');if(tb)tb.innerHTML='';G.time=0;G.people=[];G.rels={};G.objects=[];G.items=[];G.inv=[];G.produce={};G.bills=null;G.timers=[];G.cars=[];G.party=null;G.stats={};G.day=0;G.fish={};G.ext=defaultExt();}
 function makeNeighbors(){for(const n of NEIGHBORS){const p=new Sim(Object.assign({},n,{role:'neighbor'}));p.skills={charisma:ri(50,400),[pick(SKILL_IDS)]:ri(100,900)};G.people.push(p);}}
 function startHousehold(defs,cash,startMin,opts){opts=opts||{};
  resetState();G.time=startMin;G.day=dayOf(startMin);G.season=(G.seasonStart+Math.floor(G.day/7))%4;G.weather='clear';
@@ -206,12 +206,12 @@ function startSample(){
 const SAVE_KEY='mapleLane.save.v1';
 const WP_KEYS=Object.keys(WALLPAPERS);
 function serialize(){return{v:1,savedAt:Date.now(),time:G.time,money:G.money,sel:G.sel,rels:G.rels,inv:G.inv,produce:G.produce,bills:G.bills,timers:G.timers,season:G.season,seasonStart:G.seasonStart,weather:G.weather,
- freeWill:G.freeWill,settings:G.settings,stats:G.stats,day:G.day,uid:UID,party:G.party,lot:G.lot,fresh:G.fresh,tut:G.tut,town:G.town,home:G.home,fish:G.fish,
+ freeWill:G.freeWill,settings:G.settings,stats:G.stats,day:G.day,uid:UID,party:G.party,lot:G.lot,fresh:G.fresh,tut:G.tut,town:G.town,home:G.home,fish:G.fish,ext:G.ext,
  people:G.people.map(p=>p.save()),objects:G.objects.map(o=>({id:o.id,type:o.type,x:o.x,y:o.y,rot:o.rot,variant:o.variant,state:o.state,price:o.price})),items:G.items,
  map:{f:W.floor.map(f=>FCODE_R[f]||'.').join(''),w:Array.from(W.wt).join(''),p:W.wp.map(p=>String.fromCharCode(97+Math.max(0,WP_KEYS.indexOf(p)))).join('')}};}
 function loadGame(d){
  resetState();Object.assign(G,{time:d.time,money:d.money,sel:d.sel,rels:d.rels||{},inv:d.inv||[],produce:d.produce||{},bills:d.bills||null,timers:d.timers||[],season:d.season||0,seasonStart:d.seasonStart!=null?d.seasonStart:2,
-  weather:d.weather||'clear',freeWill:d.freeWill||'full',settings:Object.assign({music:true,sfx:true,smooth:true},d.settings||{}),stats:d.stats||{},day:d.day!=null?d.day:dayOf(d.time),party:null,lot:d.lot||'cottage',fresh:!!d.fresh,tut:d.tut||{done:{harts:1}},town:d.town||{seed:2611},home:d.home||null,fish:d.fish||{}});
+  weather:d.weather||'clear',freeWill:d.freeWill||'full',settings:Object.assign({music:true,sfx:true,smooth:true},d.settings||{}),stats:d.stats||{},day:d.day!=null?d.day:dayOf(d.time),party:null,lot:d.lot||'cottage',fresh:!!d.fresh,tut:d.tut||{done:{harts:1}},town:d.town||{seed:2611},home:d.home||null,fish:d.fish||{},ext:Object.assign(defaultExt(),d.ext||{})});
  TOWN=null;ensureTown();applyTownOverrides();
  UID=Math.max(UID,d.uid||1000);
  for(let i=0;i<N_TILES;i++){W.floor[i]=FCODE[d.map.f[i]]||'grass';W.wt[i]=+d.map.w[i]||0;W.wp[i]=WP_KEYS[(d.map.p.charCodeAt(i)||97)-97]||'cream';}
@@ -220,7 +220,7 @@ function loadGame(d){
  G.people=d.people.map(p=>{const s=new Sim(p);if(s.role!=='household'){s.onLot=false;s.visit=null;if(s.away&&s.away.kind!=='home')s.away=null;}else if(s.onLot&&!s.away)s.place(p.tx,p.ty);return s;});
  refreshWorld();for(const s of household())if(s.onLot&&!s.away&&!freeTile(s.tx(),s.ty())){const[x,y]=nearestFree(s.tx(),s.ty());s.place(x,y);}
  if(!personById(G.sel)||personById(G.sel).role!=='household')G.sel=household()[0]&&household()[0].id;
- G.timers=G.timers.filter(t=>t.type!=='partyEnd'&&t.type!=='party');G.started=true;UI.dirty=true;W.groundDirty=true;
+ G.timers=G.timers.filter(t=>t.type!=='partyEnd'&&t.type!=='party');G.started=true;UI.dirty=true;W.groundDirty=true;if(R.cv)setWallsUp(!!G.settings.wallsUp);
 }
 let lastSave=0;
 function autosave(force){if(!G.started)return;const now=performance.now();if(!force&&now-lastSave<20000)return;lastSave=now;

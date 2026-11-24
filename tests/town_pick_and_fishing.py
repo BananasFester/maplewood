@@ -1,7 +1,7 @@
 """New household picks a furnished starter home on the town map, then goes fishing at the lake."""
 import asyncio, json
 from playwright.async_api import async_playwright
-from common import URL, SHOTS as S, launch_opts
+from common import URL, SHOTS as S, launch_opts, pick_traits
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(**launch_opts())
@@ -14,6 +14,7 @@ async def main():
         print(json.dumps(info))
         # new household -> town pick mode
         await pg.tap('#wn'); await pg.wait_for_timeout(500)
+        await pick_traits(pg)
         await pg.tap('#cas [data-x="done"]'); await pg.wait_for_timeout(1200)
         await pg.screenshot(path=S+'tw1_pick.png')
         # select a starter home and an empty lot by tapping their centers

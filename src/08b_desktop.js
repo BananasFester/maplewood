@@ -30,7 +30,8 @@ const DESK={mouse:false,keys:new Set(),hov:null,hovT:0,tipAt:null,strip:null,str
  hover(e){const cv=R.cv,w=screenToWorld(e.clientX,e.clientY),tx=Math.floor(w.x/T),ty=Math.floor(w.y/T),busy=UI.modalOpen()||UI.welcomeOn;
   let cur='',thing=null;
   if(!busy&&G.mode==='buy'&&BB.placing){if(!this.hov||this.hov.tx!==tx||this.hov.ty!==ty)BB.ghostTo(tx,ty);cur='move';}
-  else if(!busy&&G.mode==='build'){BB.hov=[tx,ty];cur='crosshair';}
+  else if(!busy&&G.mode==='build'&&BB.tool!=='ext'){BB.hov=[tx,ty];cur='crosshair';}
+  else if(R.wallsUp&&roofAt(w.x,w.y)){BB.hov=null;}
   else if(!busy&&G.mode==='buy'){thing=hitObject(w.x,w.y,true);if(thing)cur='pointer';}
   else if(!busy&&G.mode==='live'){thing=hitSim(w.x,w.y)||hitItem(w.x,w.y)||hitObject(w.x,w.y,false);if(thing)cur='pointer';}
   if(cv.style.cursor!==cur)cv.style.cursor=cur;

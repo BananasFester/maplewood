@@ -131,54 +131,60 @@ const CATALOG={
  bed_single:{n:'Cozy Twin Bed',c:'beds',p:350,w:1,h:2,energy:10,comfort:2,acts:['sleep','nap','relax'],cols:FAB},
  bed_double:{n:'Maple Double Bed',c:'beds',p:900,w:2,h:2,energy:11,comfort:3,decor:1,acts:['sleep','nap','relax'],cols:FAB},
  bed_lux:{n:'Cloud Nine Bed',c:'beds',p:2600,w:2,h:2,energy:14,comfort:5,decor:3,lux:1,acts:['sleep','nap','relax'],cols:FAB},
- chair_dining:{n:'Spindle Chair',c:'seating',p:90,w:1,h:1,comfort:1,seat:1,rot:1,acts:['sit']},
- chair_arm:{n:'Puffy Armchair',c:'seating',p:380,w:1,h:1,comfort:3,decor:1,seat:1,rot:1,acts:['sit','doze'],cols:FAB},
- sofa:{n:'Weekend Loveseat',c:'seating',p:650,w:2,h:1,comfort:3,decor:1,seat:1,rot:1,acts:['sit','doze'],cols:FAB},
- sofa_lux:{n:'Velvet Chesterfield',c:'seating',p:1600,w:3,h:1,comfort:5,decor:3,seat:1,rot:1,lux:1,acts:['sit','doze'],cols:FAB},
- table_dining:{n:'Farmhouse Table',c:'surfaces',p:280,w:2,h:1,decor:1,surf:1,table:1},
+ chair_dining:{n:'Spindle Chair',c:'seating',p:90,w:1,h:1,turn:4,comfort:1,seat:1,acts:['sit']},
+ chair_arm:{n:'Puffy Armchair',c:'seating',p:380,w:1,h:1,turn:4,comfort:3,decor:1,seat:1,acts:['sit','doze'],cols:FAB},
+ sofa:{n:'Weekend Loveseat',c:'seating',p:650,w:2,h:1,turn:4,comfort:3,decor:1,seat:1,acts:['sit','doze'],cols:FAB},
+ sofa_lux:{n:'Velvet Chesterfield',c:'seating',p:1600,w:3,h:1,turn:4,comfort:5,decor:3,seat:1,lux:1,acts:['sit','doze'],cols:FAB},
+ table_dining:{n:'Farmhouse Table',c:'surfaces',p:280,w:2,h:1,turn:4,decor:1,surf:1,table:1},
  table_end:{n:'End Table',c:'surfaces',p:70,w:1,h:1,surf:1,table:1},
- counter:{n:'Butcher-Block Counter',c:'kitchen',p:160,w:1,h:1,surf:1,counter:1},
- sink_k:{n:'Farmhouse Sink',c:'kitchen',p:280,w:1,h:1,counter:1,sink:1,acts:['cleanAll']},
- fridge:{n:'ChillMax Fridge',c:'kitchen',p:650,w:1,h:1,fridge:1,q:0,acts:['snack','cook','cookGroup']},
- fridge_lux:{n:'Frost Royale Fridge',c:'kitchen',p:1700,w:1,h:1,fridge:1,q:1,decor:1,acts:['snack','cook','cookGroup']},
- stove:{n:'Basic Range',c:'kitchen',p:480,w:1,h:1,stove:1,q:0,acts:['cook']},
- stove_pro:{n:"Chef's Pro Range",c:'kitchen',p:2000,w:1,h:1,stove:1,q:2,decor:1,acts:['cook']},
- coffee:{n:'Coffee Station',c:'kitchen',p:150,w:1,h:1,acts:['coffee']},
+ counter:{n:'Butcher-Block Counter',c:'kitchen',p:160,w:1,h:1,turn:4,surf:1,counter:1},
+ sink_k:{n:'Farmhouse Sink',c:'kitchen',p:280,w:1,h:1,turn:4,counter:1,sink:1,acts:['cleanAll']},
+ fridge:{n:'ChillMax Fridge',c:'kitchen',p:650,w:1,h:1,turn:4,fridge:1,q:0,acts:['snack','cook','cookGroup']},
+ fridge_lux:{n:'Frost Royale Fridge',c:'kitchen',p:1700,w:1,h:1,turn:4,fridge:1,q:1,decor:1,acts:['snack','cook','cookGroup']},
+ stove:{n:'Basic Range',c:'kitchen',p:480,w:1,h:1,turn:4,stove:1,q:0,acts:['cook']},
+ stove_pro:{n:"Chef's Pro Range",c:'kitchen',p:2000,w:1,h:1,turn:4,stove:1,q:2,decor:1,acts:['cook']},
+ coffee:{n:'Coffee Station',c:'kitchen',p:150,w:1,h:1,turn:4,acts:['coffee']},
  trash:{n:'Trash Can',c:'kitchen',p:50,w:1,h:1,trash:1},
- toilet:{n:'Standard Toilet',c:'bath',p:320,w:1,h:1,rate:1,acts:['toilet']},
- toilet_lux:{n:'Heated Toilet',c:'bath',p:1200,w:1,h:1,rate:1.4,comfort:3,decor:1,acts:['toilet']},
- shower:{n:'Rainfall Shower',c:'bath',p:700,w:1,h:1,acts:['shower']},
+ toilet:{n:'Standard Toilet',c:'bath',p:320,w:1,h:1,turn:4,rate:1,acts:['toilet']},
+ toilet_lux:{n:'Heated Toilet',c:'bath',p:1200,w:1,h:1,turn:4,rate:1.4,comfort:3,decor:1,acts:['toilet']},
+ shower:{n:'Rainfall Shower',c:'bath',p:700,w:1,h:1,turn:4,acts:['shower']},
  tub:{n:'Clawfoot Tub',c:'bath',p:1400,w:2,h:1,decor:2,acts:['bath']},
- sink_b:{n:'Vanity Sink',c:'bath',p:240,w:1,h:1,decor:1,bsink:1,acts:['washHands','brushTeeth']},
- tv:{n:'Retro Box TV',c:'electronics',p:520,w:1,h:1,tv:1,fun:22,acts:['watchTV','watchCooking','watchWorkout']},
- tv_big:{n:'Cinema Wall TV',c:'electronics',p:2800,w:2,h:1,tv:1,fun:34,decor:2,acts:['watchTV','watchCooking','watchWorkout']},
- pc:{n:'Home Computer',c:'electronics',p:850,w:1,h:1,pc:1,fun:24,acts:['playGames','browse','chatOnline','freelance','study','findJob']},
- pc_lux:{n:'Gamer Rig X',c:'electronics',p:2200,w:1,h:1,pc:1,fun:34,q:1,decor:1,acts:['playGames','browse','chatOnline','freelance','study','findJob']},
+ sink_b:{n:'Vanity Sink',c:'bath',p:240,w:1,h:1,turn:4,decor:1,bsink:1,acts:['washHands','brushTeeth']},
+ tv:{n:'Retro Box TV',c:'electronics',p:520,w:1,h:1,turn:4,tv:1,fun:22,acts:['watchTV','watchCooking','watchWorkout']},
+ tv_big:{n:'Cinema Wall TV',c:'electronics',p:2800,w:2,h:1,turn:4,tv:1,fun:34,decor:2,acts:['watchTV','watchCooking','watchWorkout']},
+ pc:{n:'Home Computer',c:'electronics',p:850,w:1,h:1,turn:4,pc:1,fun:24,acts:['playGames','browse','chatOnline','freelance','study','findJob']},
+ pc_lux:{n:'Gamer Rig X',c:'electronics',p:2200,w:1,h:1,turn:4,pc:1,fun:34,q:1,decor:1,acts:['playGames','browse','chatOnline','freelance','study','findJob']},
  stereo:{n:'Boombox',c:'electronics',p:320,w:1,h:1,stereo:1,acts:['dance']},
- bookshelf:{n:'Oak Bookshelf',c:'hobbies',p:420,w:1,h:1,decor:1,acts:['readNovel','readCooking','readLogic','readGarden']},
+ bookshelf:{n:'Oak Bookshelf',c:'hobbies',p:420,w:1,h:1,turn:4,decor:1,acts:['readNovel','readCooking','readLogic','readGarden']},
  chess:{n:'Chess Table',c:'hobbies',p:460,w:1,h:1,acts:['chess']},
- easel:{n:'Artist Easel',c:'hobbies',p:520,w:1,h:1,acts:['paint']},
+ easel:{n:'Artist Easel',c:'hobbies',p:520,w:1,h:1,turn:4,acts:['paint']},
  guitar:{n:'Acoustic Guitar',c:'hobbies',p:380,w:1,h:1,frontDir:'down',acts:['playGuitar','busk']},
- treadmill:{n:'Treadmill',c:'hobbies',p:820,w:1,h:1,inPos:[8,10],inDir:'up',acts:['run']},
+ treadmill:{n:'Treadmill',c:'hobbies',p:820,w:1,h:1,turn:4,inPos:[8,10],inDir:'up',acts:['run']},
  dumbbells:{n:'Dumbbell Rack',c:'hobbies',p:450,w:1,h:1,frontDir:'down',acts:['lift']},
- mirror:{n:'Standing Mirror',c:'hobbies',p:260,w:1,h:1,decor:1,acts:['speech','admire']},
+ mirror:{n:'Standing Mirror',c:'hobbies',p:260,w:1,h:1,turn:4,decor:1,acts:['speech','admire']},
  telescope:{n:'Brass Telescope',c:'hobbies',p:950,w:1,h:1,decor:1,acts:['stargaze']},
  lamp_floor:{n:'Floor Lamp',c:'lighting',p:120,w:1,h:1,light:{r:70,c:'warm',y:-18}},
  lamp_table:{n:'Lamp on End Table',c:'lighting',p:110,w:1,h:1,light:{r:58,c:'warm',y:-8}},
  woodstove:{n:'Cast-Iron Wood Stove',c:'lighting',p:950,w:1,h:1,decor:2,light:{r:80,c:'fire',y:-2},acts:['warmUp']},
  lantern:{n:'Garden Lantern',c:'lighting',p:110,w:1,h:1,decor:1,out:1,light:{r:58,c:'warm',y:-11}},
+ lamp_arc:{n:'Arc Floor Lamp',c:'lighting',p:260,w:1,h:1,decor:1,light:{r:80,c:'warm',y:-6,x:5}},
+ lamp_paper:{n:'Paper Lantern Lamp',c:'lighting',p:90,w:1,h:1,decor:1,light:{r:62,c:'warm',y:-4}},
+ sconce:{n:'Brass Wall Sconce',c:'lighting',p:140,w:1,h:1,decor:1,wall:1,light:{r:66,c:'warm',y:4,gy:-8}},
+ sconce_globe:{n:'Globe Wall Light',c:'lighting',p:95,w:1,h:1,wall:1,light:{r:60,c:'cool',y:4,gy:-8}},
+ lamp_post:{n:'Garden Lamp Post',c:'lighting',p:240,w:1,h:1,decor:1,out:1,light:{r:86,c:'warm',y:-22}},
+ string_lights:{n:'String Lights',c:'lighting',p:180,w:2,h:1,decor:2,out:1,light:{r:74,c:'warm',y:-14,x:16}},
  plant_s:{n:'Potted Fern',c:'decor',p:60,w:1,h:1,decor:1},
  plant_l:{n:'Fiddle-Leaf Fig',c:'decor',p:190,w:1,h:1,decor:2},
  rug:{n:'Woven Rug',c:'decor',p:160,w:2,h:2,decor:2,rug:1,cols:FAB},
- rug_big:{n:'Medallion Rug',c:'decor',p:420,w:3,h:2,decor:3,rug:1,cols:FAB},
- tank:{n:'Aquarium',c:'decor',p:750,w:2,h:1,decor:3,acts:['watchFish']},
+ rug_big:{n:'Medallion Rug',c:'decor',p:420,w:3,h:2,turn:4,decor:3,rug:1,cols:FAB},
+ tank:{n:'Aquarium',c:'decor',p:750,w:2,h:1,turn:4,decor:3,acts:['watchFish']},
  art_wall:{n:'Landscape Print',c:'decor',p:280,w:1,h:1,decor:2,wall:1},
  clock_wall:{n:'Wall Clock',c:'decor',p:90,w:1,h:1,decor:1,wall:1},
  plot:{n:'Garden Plot',c:'outdoor',p:60,w:1,h:1,plot:1,out:1,acts:['plant','water','harvest','dig']},
  tree:{n:'Maple Tree',c:'outdoor',p:300,w:1,h:1,decor:2,tree:1,out:1},
  bush:{n:'Round Shrub',c:'outdoor',p:80,w:1,h:1,decor:1,out:1},
  flowers:{n:'Flower Bed',c:'outdoor',p:45,w:1,h:1,decor:1,out:1},
- bench:{n:'Park Bench',c:'outdoor',p:220,w:2,h:1,comfort:1,seat:1,out:1,acts:['sit']},
+ bench:{n:'Park Bench',c:'outdoor',p:220,w:2,h:1,turn:4,comfort:1,seat:1,out:1,acts:['sit']},
  grill:{n:'Charcoal Grill',c:'outdoor',p:420,w:1,h:1,grill:1,out:1,acts:['grill']},
  mailbox:{n:'Mailbox',c:null,p:0,w:1,h:1,fixed:1,acts:['payBills']},
  streetlamp:{n:'Street Lamp',c:null,p:0,w:1,h:1,fixed:1,light:{r:84,c:'warm',y:-27}},
@@ -209,6 +215,16 @@ const WALLPAPERS={
  mustard:{l:'Mustard Damask',c:'#dab35c',c2:'#c79d47',pat:'damask'},
 };
 const BUILD_COST={wall:12,door:120,window:90,wallpaper:3};
+// ---------- the outside of the house (Build mode, Outside tool) ----------
+const SIDINGS={sky:{l:'Sky Blue',c:'#8fb1c2',c2:'#7d9eb0',d:'#6b8ea0'},white:{l:'Cottage White',c:'#eeeae2',c2:'#dcd6cc',d:'#c4bdb1'},
+ butter:{l:'Butter',c:'#ecd38c',c2:'#dcc078',d:'#c4a862'},sage:{l:'Sage',c:'#a8bb94',c2:'#96aa82',d:'#7f936b'},rose:{l:'Rose',c:'#d9a3a0',c2:'#c88f8c',d:'#b07774'},
+ slate:{l:'Slate Gray',c:'#8a929c',c2:'#7a828c',d:'#666e78'},brick:{l:'Red Brick',c:'#b5583f',c2:'#8f4130',d:'#7a3626',pat:'brick'},
+ stone:{l:'Fieldstone',c:'#a9a49a',c2:'#8a857b',d:'#77736a',pat:'stone'},shingle:{l:'Cedar Shingles',c:'#a87a52',c2:'#8f6440',d:'#77522f',pat:'shingle'}};
+const ROOF_COLS=['#5f708a','#3f4650','#c4664a','#a95a48','#7c6a5c','#6f8e6b','#86627c','#c79a5a','#4f6f8f'];
+const SHUTTER_COLS=['#c95b7d','#4f7fd6','#3e7a4f','#2f3a4a','#f2efe6','#e2a53a','#a83f3a'];
+const DOOR_COLS=['#9a6a43','#c4453a','#2f4a7a','#3e7a4f','#e2a53a','#3a3338','#f2efe6'];
+const EXT_COST={siding:150,roof:200,shutter:40,door:40};
+function defaultExt(){return{siding:'sky',roof:'#5f708a',shutter:'#c95b7d',door:'#9a6a43'};}
 
 // ---------- people ----------
 const SKINS=['#ffe1c9','#f6caa7','#e2ac80','#c68b5f','#9c623e','#6e4529'];
@@ -218,20 +234,23 @@ const TOP_COLS=['#d9603b','#e2a53a','#6fa35a','#3e9e9a','#4f7fd6','#2f4a7a','#8e
 const BOT_COLS=['#2f3e5c','#3a3338','#6b4a33','#556b45','#8a8f99','#c7b48d','#a83f3a','#4f7fd6','#e6dfd0','#6f4f8a'];
 const SHOE_COLS=['#3a2a25','#f2efe6','#a83f3a','#2f3e5c','#6b4a33','#3a3338'];
 const FIRSTS=['Avery','Jordan','Sam','Riley','Casey','Morgan','Quinn','Rowan','Emery','Jamie','Alex','Taylor','Noah','Mia','Leo','Ivy','Ezra','Nora','Milo','Ada','Felix','Hazel','Oscar','Luna','Jude','Iris','Silas','Clara','Otis','Wren'];
+// gendered first names for create-a-sim (FIRSTS stays as it is: town generation draws from it)
+const FIRSTS_F=['Avery','Riley','Casey','Quinn','Emery','Jamie','Mia','Ivy','Nora','Ada','Hazel','Luna','Iris','Clara','Wren','Rosa','June','Maya','Elsie','Pearl'];
+const FIRSTS_M=['Jordan','Sam','Morgan','Rowan','Alex','Taylor','Noah','Leo','Ezra','Milo','Felix','Oscar','Jude','Silas','Otis','Theo','Hank','Arlo','Gus','Owen'];
 const LASTS=['Hart','Rivers','Bloom','Fairway','Calloway','Thorne','Waverly','Pemberton','Ashby','Holloway','Kestrel','Marsh','Larkin','Sutter','Vance','Ember','Lowell','Finch'];
 const NEIGHBORS=[
- {first:'Rosa',last:'Delgado',app:{skin:2,hair:'long',hairC:'#221c22',top:'#d9603b',topS:'tee',bot:'#2f3e5c',botS:'skirt',shoes:'#3a2a25',beard:0},traits:['social','foodie','cheerful']},
- {first:'Marcus',last:'Bell',app:{skin:4,hair:'buzz',hairC:'#221c22',top:'#4f7fd6',topS:'tee',bot:'#3a3338',botS:'pants',shoes:'#f2efe6',beard:1},traits:['athletic','workaholic','charmer']},
- {first:'Priya',last:'Raman',app:{skin:3,hair:'bun',hairC:'#221c22',top:'#3e9e9a',topS:'long',bot:'#e6dfd0',botS:'pants',shoes:'#6b4a33',beard:0},traits:['genius','bookworm','neat']},
- {first:'Theo',last:'Lindqvist',app:{skin:0,hair:'curly',hairC:'#dcb35e',top:'#8e5ba8',topS:'tee',bot:'#556b45',botS:'shorts',shoes:'#a83f3a',beard:0},traits:['musical','slob','nightowl']},
- {first:'June',last:'Park',app:{skin:1,hair:'bob',hairC:'#221c22',top:'#e2a53a',topS:'long',bot:'#6f4f8a',botS:'skirt',shoes:'#3a3338',beard:0},traits:['artistic','loner','green']},
- {first:'Hank',last:'Ortiz',app:{skin:2,hair:'bald',hairC:'#4a2f22',top:'#6fa35a',topS:'tee',bot:'#c7b48d',botS:'pants',shoes:'#6b4a33',beard:1},traits:['couch','cheerful','social']},
- {first:'Willa',last:'Moss',app:{skin:1,hair:'ponytail',hairC:'#b0632f',top:'#c95b7d',topS:'tee',bot:'#2f3e5c',botS:'shorts',shoes:'#f2efe6',beard:0},traits:['athletic','green','charmer']},
- {first:'Dev',last:'Okafor',app:{skin:5,hair:'short',hairC:'#221c22',top:'#f2efe6',topS:'long',bot:'#2f3e5c',botS:'pants',shoes:'#3a2a25',beard:0},traits:['genius','workaholic','loner']},
+ {first:'Rosa',last:'Delgado',app:{body:'f',skin:2,hair:'long',hairC:'#221c22',top:'#d9603b',topS:'tee',bot:'#2f3e5c',botS:'skirt',shoes:'#3a2a25',beard:0},traits:['social','foodie','cheerful']},
+ {first:'Marcus',last:'Bell',app:{body:'m',skin:4,hair:'buzz',hairC:'#221c22',top:'#4f7fd6',topS:'tee',bot:'#3a3338',botS:'pants',shoes:'#f2efe6',beard:1},traits:['athletic','workaholic','charmer']},
+ {first:'Priya',last:'Raman',app:{body:'f',skin:3,hair:'bun',hairC:'#221c22',top:'#3e9e9a',topS:'long',bot:'#e6dfd0',botS:'pants',shoes:'#6b4a33',beard:0},traits:['genius','bookworm','neat']},
+ {first:'Theo',last:'Lindqvist',app:{body:'m',skin:0,hair:'curly',hairC:'#dcb35e',top:'#8e5ba8',topS:'tee',bot:'#556b45',botS:'shorts',shoes:'#a83f3a',beard:0},traits:['musical','slob','nightowl']},
+ {first:'June',last:'Park',app:{body:'f',skin:1,hair:'bob',hairC:'#221c22',top:'#e2a53a',topS:'long',bot:'#6f4f8a',botS:'skirt',shoes:'#3a3338',beard:0},traits:['artistic','loner','green']},
+ {first:'Hank',last:'Ortiz',app:{body:'m',skin:2,hair:'bald',hairC:'#4a2f22',top:'#6fa35a',topS:'tee',bot:'#c7b48d',botS:'pants',shoes:'#6b4a33',beard:1},traits:['couch','cheerful','social']},
+ {first:'Willa',last:'Moss',app:{body:'f',skin:1,hair:'ponytail',hairC:'#b0632f',top:'#c95b7d',topS:'tee',bot:'#2f3e5c',botS:'shorts',shoes:'#f2efe6',beard:0},traits:['athletic','green','charmer']},
+ {first:'Dev',last:'Okafor',app:{body:'m',skin:5,hair:'short',hairC:'#221c22',top:'#f2efe6',topS:'long',bot:'#2f3e5c',botS:'pants',shoes:'#3a2a25',beard:0},traits:['genius','workaholic','loner']},
 ];
 const SAMPLE=[
- {first:'Jamie',last:'Hart',app:{skin:1,hair:'ponytail',hairC:'#7b4a2a',top:'#e2a53a',topS:'tee',bot:'#2f3e5c',botS:'pants',shoes:'#a83f3a',beard:0},traits:['foodie','social','cheerful'],job:{career:'culinary',level:0,perf:45},skills:{cooking:280,charisma:120}},
- {first:'Alex',last:'Hart',app:{skin:3,hair:'short',hairC:'#221c22',top:'#3e9e9a',topS:'long',bot:'#3a3338',botS:'pants',shoes:'#f2efe6',beard:1},traits:['bookworm','musical','neat'],job:{career:'tech',level:0,perf:40},skills:{logic:300,guitar:110}},
+ {first:'Jamie',last:'Hart',app:{body:'f',skin:1,hair:'ponytail',hairC:'#7b4a2a',top:'#e2a53a',topS:'tee',bot:'#2f3e5c',botS:'pants',shoes:'#a83f3a',beard:0},traits:['foodie','social','cheerful'],job:{career:'culinary',level:0,perf:45},skills:{cooking:280,charisma:120}},
+ {first:'Alex',last:'Hart',app:{body:'m',skin:3,hair:'short',hairC:'#221c22',top:'#3e9e9a',topS:'long',bot:'#3a3338',botS:'pants',shoes:'#f2efe6',beard:1},traits:['bookworm','musical','neat'],job:{career:'tech',level:0,perf:40},skills:{logic:300,guitar:110}},
 ];
 
 // ---------- socials ----------

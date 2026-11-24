@@ -1,7 +1,7 @@
 """Release build (no debug hook): pick a home with real taps, move in, open the map, follow an event chip."""
 import asyncio
 from playwright.async_api import async_playwright
-from common import RELEASE_URL as URL, SHOTS as S, launch_opts
+from common import RELEASE_URL as URL, SHOTS as S, launch_opts, pick_traits
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(**launch_opts())
@@ -12,6 +12,7 @@ async def main():
         await pg.goto(URL); await pg.wait_for_timeout(1500)
         print('debug hook present:', await pg.evaluate("()=>typeof window.__ML"))
         await pg.tap('#wn'); await pg.wait_for_timeout(500)
+        await pick_traits(pg)
         await pg.tap('#cas [data-x="done"]'); await pg.wait_for_timeout(1000)
         # zoom in twice with the + button, then tap around until a For Sale card appears
         await pg.tap('#zoom [data-z="1"]'); await pg.wait_for_timeout(400)

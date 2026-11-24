@@ -15,7 +15,9 @@ generated town. It runs as a single self-contained web page.
 - **Life on the lot.** Sims with needs, moods, traits, skills, wishes and careers. Cook, sleep,
   chat with neighbors, garden, pay the bills at the mailbox.
 - **Build and buy.** Drag out rooms, add doors and windows, paint floors and walls, and furnish
-  from a catalog. A front door gets a stone path to the sidewalk.
+  from a catalog. Most furniture turns to face any way. A front door gets a stone path to the
+  sidewalk. Put the walls up to see the house with its roof on, and pick its siding, roof,
+  shutters and front door.
 - **A procedural town.** Every new household gets its own town: streets, a lake, a park, a
   downtown and neighbors. Start on an empty lot, or in a starter home that comes furnished or
   unfurnished. Everything fits the $20,000 starting budget.
@@ -81,7 +83,9 @@ docs/screens/   screenshots
 
 ## Saves
 
-The game autosaves to `localStorage` (`mapleLane.save.v1`). When it runs as a claude.ai
+The game autosaves to `localStorage` (`mapleLane.save.v1`). The start menu offers to continue that
+save or start a new game (the Harts, or a household of your own), and asks before a new game
+replaces it. Main menu in the game's menu goes back to it. When it runs as a claude.ai
 artifact it also keeps a copy in the artifact's storage, so a save follows the player between
 devices. Anywhere else that part is skipped.
 

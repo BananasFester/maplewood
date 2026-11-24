@@ -11,7 +11,7 @@ function start(hot){
  let d=hot.save||null;if(!d)d=loadLocal();let ok=false;
  if(d){try{loadGame(d);G.loadedAt=d.savedAt||0;ok=true;}catch(e){console.error('load failed',e);}}
  if(!ok)startSample();
- applySmooth(G.settings.smooth!==false);
+ applySmooth(G.settings.smooth!==false);setWallsUp(!!G.settings.wallsUp);
  if(hot.cam){if(hot.cam.z)setZoom(hot.cam.z);R.camX=hot.cam.x;R.camY=hot.cam.y;clampCam();}else centerHome();
  if(hot.save){UI.dirty=true;}else UI.welcome(ok?'continue':'new');
  try{window.claude&&window.claude.hot&&window.claude.hot.snapshot&&window.claude.hot.snapshot(()=>({save:serialize(),cam:{x:R.camX,y:R.camY,z:R.Z}}));}catch(e){}

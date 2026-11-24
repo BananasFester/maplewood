@@ -75,10 +75,42 @@ function drawSorted(b,ix,iy,vw,vh){
  for(const o of G.objects){const d=o.def;if(d.rug||d.wall)continue;if((o.x+d.w+3)*T<ix||(o.x-3)*T>ix+vw||(o.y+d.h)*T<iy||(o.y-4)*T>iy+vh)continue;L.push({y:(o.y+d.h)*T-.5,x:o.x*T,k:1,o});}
  for(const s of G.people){if(!s.onLot||s.inObj)continue;let sy=s.y;const ti=I(clamp(s.tx(),0,MW-1),clamp(s.ty(),0,MH-1));if(W.wt[ti]===2)sy=Math.max(sy,s.ty()*T+11);L.push({y:sy,x:s.x,k:2,s});}
  for(const c of G.cars)L.push({y:c.y+20,x:c.x,k:3,c});
+ if(R.wallsUp)for(const rf of roofList())L.push({y:rf.y1*T+10.5,x:rf.x0*T,k:4,rf});
  L.sort((a,b)=>a.y-b.y||a.x-b.x);
  for(const d of L){if(d.k===0){const p=d.p;if(p.glass){b.fillStyle=skyColor();b.fillRect(d.tx*T+p.glass[0],d.ty*T+p.oy+p.glass[1],p.glass[2],p.glass[3]);}b.drawImage(p.c,d.tx*T+p.ox,d.ty*T+p.oy);}
-  else if(d.k===1)drawObj(b,d.o);else if(d.k===2)drawSim(b,d.s);else{const c=d.c;b.drawImage(carSprite(c.col,c.dir),Math.round(c.x)-19,Math.round(c.y));}}
+  else if(d.k===1)drawObj(b,d.o);else if(d.k===2)drawSim(b,d.s);else if(d.k===4)drawRoof(b,d.rf);else{const c=d.c;b.drawImage(carSprite(c.col,c.dir),Math.round(c.x)-19,Math.round(c.y));}}
 }
+// ---------- walls up: full-height walls and a roof over each building ----------
+function setWallsUp(v){R.wallsUp=!!v;G.settings.wallsUp=R.wallsUp;WALL_SPR.clear();document.body.classList.toggle('wallsup',R.wallsUp);const b=document.querySelector('#zoom [data-z="walls"]');if(b)b.setAttribute('aria-pressed',R.wallsUp);UI.dirty=true;}
+function toggleWalls(){BB.autoWalls=0;setWallsUp(!R.wallsUp);toast(R.wallsUp?'Walls up. Tap the house button again to see inside.':'Walls down','home');}
+// one roof per building; a building that is not a rectangle gets one roof per room
+function roofList(){const seen=new Uint8Array(N_TILES),out=[],solid=(x,y)=>inLot(x,y)&&(W.wt[I(x,y)]>0||isInt(x,y));
+ for(let y=0;y<LOTH;y++)for(let x=0;x<MW;x++){const i0=I(x,y);if(seen[i0]||!solid(x,y))continue;
+  const st=[i0],tiles=[];seen[i0]=1;let x0=x,x1=x,y0=y,y1=y,room=false;
+  while(st.length){const c=st.pop(),cx=c%MW,cy=(c/MW)|0;tiles.push(c);if(W.room[c]>=0)room=true;x0=Math.min(x0,cx);x1=Math.max(x1,cx);y0=Math.min(y0,cy);y1=Math.max(y1,cy);
+   for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+dx,ny=cy+dy;if(!solid(nx,ny))continue;const ni=I(nx,ny);if(seen[ni])continue;seen[ni]=1;st.push(ni);}}
+  if(!room)continue;
+  if(tiles.length===(x1-x0+1)*(y1-y0+1)){out.push({x0,y0,x1,y1});continue;}
+  const rs=new Set(tiles.filter(t=>W.room[t]>=0).map(t=>W.room[t]));
+  for(const r of rs){let a=MW,b=MH,c=-1,d=-1;for(const t of W.rooms[r].tiles){const tx=t%MW,ty=(t/MW)|0;a=Math.min(a,tx);c=Math.max(c,tx);b=Math.min(b,ty);d=Math.max(d,ty);}out.push({x0:a-1,y0:b-1,x1:c+1,y1:d+1});}}
+ return out.sort((p,q)=>p.y1-q.y1);}
+function roofBox(rf){const L=rf.x0*T+4,Rt=(rf.x1+1)*T-4,D=(rf.y1-rf.y0)*T,lift=Math.min(18,Math.round(D*.24)),top=rf.y0*T+6-HT-lift,eave=rf.y1*T+11-HT;
+ return{L,Rt,top,eave,ridge:Math.round(top+(eave-top)*.42)};}
+function roofAt(wx,wy){if(!R.wallsUp)return null;for(const rf of roofList()){const b=roofBox(rf);if(wx>=b.L&&wx<b.Rt&&wy>=b.top&&wy<rf.y1*T+10)return rf;}return null;}
+// a hip roof: front and back slopes between the eaves and the ridge, with sloped ends shaded left and right
+const ROOF_SPR=new Map();
+function drawRoof(b,rf){const{L,Rt,top,eave,ridge}=roofBox(rf),col=(G.ext&&G.ext.roof)||'#5f708a',key=[rf.x0,rf.y0,rf.x1,rf.y1,col].join();
+ let c=ROOF_SPR.get(key);if(!c){if(ROOF_SPR.size>40)ROOF_SPR.clear();c=roofSprite(Rt-L,eave-top,ridge-top,col,rf);ROOF_SPR.set(key,c);}b.drawImage(c,L,top);}
+function roofSprite(w,h,rd,col,rf){const[c,g]=mkc(w,h+3);_g=g;const front=shade(col,.1),back=shade(col,-.2),lf=shade(col,-.04),rt=shade(col,-.3),line=shade(col,-.42),hi=Math.min(Math.round(w*.2),Math.round(h*.75));
+ for(let y=0;y<h;y++){const k=Math.round(hi*(y<rd?y/Math.max(1,rd):(h-1-y)/Math.max(1,h-1-rd))),fr=y>=rd,mid=fr?front:back;
+  F(lf,0,y,k,1);F(rt,w-k,y,k,1);F(mid,k,y,w-2*k,1);
+  const dy=fr?y-rd:rd-y;if(dy%3===0&&dy>0){F(shade(mid,-.08),k,y,w-2*k,1);F(shade(lf,-.08),0,y,k,1);F(shade(rt,-.06),w-k,y,k,1);}
+  if(fr&&dy%3===1)for(let x=k+((dy/3|0)%2?2:0);x<w-k;x+=4)F(shade(mid,-.08),x,y,1,2);
+  if(k>0){F(line,k,y,1,1);F(line,w-k-1,y,1,1);}}
+ F(line,hi,rd-1,w-2*hi,2);F(shade(col,.3),hi,rd+1,w-2*hi,1);
+ F(line,0,0,w,1);F(line,0,0,1,h);F(line,w-1,0,1,h);F('#efe8da',0,h-2,w,2);F('rgba(30,20,40,.3)',1,h,w-2,3);
+ if(w>=64){const cx=Math.round(w*.68);F('#9b4a36',cx,rd-12,6,11);F('#b85a42',cx,rd-12,1,11);F('#5a3a30',cx-1,rd-13,8,2);F('#7a3a2a',cx,rd-2,6,1);}
+ return c;}
 function skyColor(){const a=ambientAt(G.time);const day=brightness();return day>.8?(G.weather==='clear'?'#a9d8f2':'#b9c7d3'):rgb([a[0]*.55,a[1]*.6,a[2]*.85]);}
 function drawObj(b,o){const sp=objSprites(o);if(!sp)return;const px=o.x*T,py=o.y*T;
  b.drawImage(sp.base.c,px+sp.base.ox,py+sp.base.oy);_g=b;dynObj(b,o,px,py);
@@ -86,6 +118,7 @@ function drawObj(b,o){const sp=objSprites(o);if(!sp)return;const px=o.x*T,py=o.y
  for(const s of G.people)if(s.onLot&&s.inObj&&s.inObj.o===o)drawSim(b,s);
  if(sp.top){let tx=px+sp.top.ox;if(o.def.tree)tx+=Math.round(Math.sin(R.t*1.1+o.x*1.7)*.9);b.drawImage(sp.top.c,tx,py+sp.top.oy);}}
 function dynObj(b,o,px,py){const t=o.type,busy=o._busy>0,tt=R.t;
+ if((o.rot||0)&&(t==='tv'||t==='tv_big'||t==='pc'||t==='pc_lux'||t==='tank'))return; // the screen and the fish only show from the front
  if(t==='tv'||t==='tv_big'){if(!busy)return;const r=t==='tv'?[2,-9,10,10]:[2,-11,28,13];const ch=Math.floor(tt/3)%4,cols=[['#5ab0ff','#ffe08a','#7fd16a'],['#ff8a7a','#ffd34d','#ffffff'],['#9fe870','#46c2ff','#2a6a9a'],['#e27aa6','#8e5ba8','#ffd34d']][ch];
   F(cols[0],px+r[0],py+r[1],r[2],r[3]);F(cols[1],px+r[0]+((tt*6|0)%(r[2]-3)),py+r[1]+2,3,r[3]-4);F(cols[2],px+r[0],py+r[1]+r[3]-3,r[2],3);if(((tt*10)|0)%7===0)F('rgba(255,255,255,.35)',px+r[0],py+r[1],r[2],r[3]);}
  else if(t==='pc'||t==='pc_lux'){if(!busy)return;F('#3a7bd5',px+3,py-10,10,7);for(let i=0;i<3;i++)F('#bfe0ff',px+4,py-9+i*2,2+((tt*3+i*5)|0)%6,1);}
@@ -116,6 +149,10 @@ function simFace(s){if(((R.t+s.blink)%3.7)<.13)return'blink';const ml=moodLevel(
 function drawSim(b,s){let pose=s.anim.pose;if(pose==='walk'&&!s.path&&!(s.act&&s.act.steps[s.act.si]&&s.act.steps[s.act.si].ph==='enter'))pose='idle';
  if(s.carry&&(pose==='walk'||pose==='idle')&&s.role)pose=pose;const f=simFrame(s,pose),face=simFace(s);const spr=simSprite(s,s.dir,pose,f,face);
  if(pose==='sleep'||pose==='bath'||pose==='lieAwake'){b.drawImage(spr,Math.round(s.x)-9,Math.round(s.y)-16);return;}
+ // in the shower only the head and raised hands are drawn; the body is a soft blur of skin and steam
+ if(pose==='shower'){const x=Math.round(s.x),y=Math.round(s.y),A=s._cols||simColors(s.app);b.drawImage(spr,0,0,18,13,x-9,y-28,18,13);
+  const cs=[A.sk,A.skL,A.skD,mix(A.sk,'#ffffff',.45),'#dfeef3'],tt=Math.floor(R.t*3);
+  for(let yy=0;yy<8;yy++)for(let xx=0;xx<6;xx++){if((yy===7&&(xx===0||xx===5)))continue;b.fillStyle=cs[(hash(xx,yy,tt)*cs.length)|0];b.fillRect(x-6+xx*2,y-15+yy*2,2,2);}return;}
  b.drawImage(spr,Math.round(s.x)-9,Math.round(s.y)-28);
  if(pose==='toilet'){const A=s._cols||simColors(s.app),cs=[A.sk,A.t,A.b,'#ffffff',A.tD],tt=Math.floor(R.t*5),x0=Math.round(s.x)-6,y0=Math.round(s.y)-13;for(let yy=0;yy<4;yy++)for(let xx=0;xx<6;xx++){b.fillStyle=cs[(hash(xx,yy,tt)*cs.length)|0];b.fillRect(x0+xx*2,y0+yy*2,2,2);}}
  if(s.carry){_g=b;const x=Math.round(s.x),y=Math.round(s.y)-11;if(s.dir!=='up'){F('#2a1f2d',x-5,y,10,1);F('#ffffff',x-4,y-1,8,1);F(s.carry==='plate'?'#e8b25c':'#c9b99a',x-2,y-2,4,1);}}}
@@ -137,7 +174,8 @@ function drawWeather(b,ix,iy,vw,vh){if(G.weather==='clear')return;_g=b;const sno
   const wx=ix+d.x*vw,wy=iy+d.y*vh,tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(inMap(tx,ty)&&(isInt(tx,ty)||W.wt[I(tx,ty)]))continue;
   if(snow){F('rgba(255,255,255,.9)',wx|0,wy|0,1,1);}else{F('rgba(190,215,240,.55)',wx|0,wy|0,1,3);}}}
 function lightList(){const L=[];const dark=brightness()<.82;
- for(const o of G.objects){const d=o.def;if(d.light&&o._on)L.push({x:o.x*T+8,y:o.y*T+d.light.y,r:d.light.r,c:[255,204,140],a:.95,glow:1});
+ for(const o of G.objects){const d=o.def;if(d.light&&d.wall)o._on=lightsOn(o);
+  if(d.light&&o._on)L.push({x:o.x*T+(d.light.x!=null?d.light.x:8),y:o.y*T+d.light.y,gy:d.light.gy!=null?o.y*T+d.light.gy:null,r:d.light.r,c:d.light.c==='cool'?[205,228,255]:[255,204,140],a:.95,glow:1});
   if(o.type==='woodstove'&&(dark||G.season===3))L.push({x:o.x*T+8,y:o.y*T,r:80,c:[255,150,70],a:.8+Math.sin(R.t*9)*.1,glow:1});
   if((o.type==='tv'||o.type==='tv_big')&&o._busy)L.push({x:o.x*T+o.def.w*8,y:o.y*T,r:o.def.w*34+14,c:[120,170,255],a:.65+Math.sin(R.t*7)*.15});
   if((o.type==='pc'||o.type==='pc_lux')&&o._busy)L.push({x:o.x*T+8,y:o.y*T-4,r:30,c:[140,190,255],a:.7});
@@ -158,7 +196,7 @@ function buildLight(ix,iy){const amb=ambientAt(G.time),br=(amb[0]+amb[1]+amb[2])
  L.globalAlpha=1;L.globalCompositeOperation='source-over';return{br,lights};}
 // additive glows: lamp halos and fireflies. Maps world (x,y) to target as ((x-ix)*s+ox,(y-iy)*s+oy)
 function drawGlows(c,li,ix,iy,ox,oy,s){const br=li.br,gs=lightStamp([255,220,160]);
- for(const l of li.lights)if(l.glow){const x=(l.x-ix)*s+ox,y=(l.y-iy)*s+oy,r=7*s;c.globalAlpha=.55*(1-br);c.drawImage(gs,x-r,y-r,r*2,r*2);}
+ for(const l of li.lights)if(l.glow){const x=(l.x-ix)*s+ox,y=((l.gy!=null?l.gy:l.y)-iy)*s+oy,r=7*s;c.globalAlpha=.55*(1-br);c.drawImage(gs,x-r,y-r,r*2,r*2);}
  if(br<.5&&G.season<=2&&G.weather==='clear'){const fs=lightStamp([200,255,120]);for(const f of AMB.flies){const k=(Math.sin(f.p*2.3)+1)/2;if(k<.25)continue;const x=(f.x-ix)*s+ox,y=(f.y-iy)*s+oy,r=3*s;c.globalAlpha=k*.9;c.drawImage(fs,x-r,y-r,r*2,r*2);c.fillStyle='#f4ffb0';c.fillRect(x-s/2,y-s/2,s,s);}}
  c.globalAlpha=1;}
 function shaftsOn(){const h=hourOf(G.time);return h>6.5&&h<18.5&&G.weather!=='snow';}

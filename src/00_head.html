@@ -68,7 +68,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-of
 #tip .tx{margin-top:6px;font-size:13px;color:var(--ink2)}
 [data-tip]{-webkit-touch-callout:none}
 body.town #sheet,body.town #buy,body.town #build,body.town #modes,body.town #portraits,body.town #queue,body.town #speed,body.town #skip,body.town #tut,body.town #tutRing,body.town #place,body.town #ctx{display:none!important}
-body.town #zoom [data-z="town"]{background:var(--acc);color:#fff}
+body.town #zoom [data-z="town"],body.wallsup #zoom [data-z="walls"]{background:var(--acc);color:#fff}body.town #zoom [data-z="walls"]{display:none}
 #tbar{position:absolute;top:calc(env(safe-area-inset-top,0px) + 70px);left:calc(env(safe-area-inset-left,0px) + 8px);font-weight:900;gap:6px;padding:4px 14px 4px 10px}
 #tcard{position:absolute;left:calc(env(safe-area-inset-left,0px) + 8px);right:calc(env(safe-area-inset-right,0px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);max-width:500px;max-height:min(56vh,460px);overflow-y:auto;padding:12px 14px;touch-action:pan-y}
 #tcard .tt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}#tcard .tt b{font:700 20px/1.1 "Pixelify Sans",Nunito,sans-serif}
@@ -145,7 +145,7 @@ body.smooth .item canvas{image-rendering:auto}
 .pips{display:flex;gap:2px}.pips i{width:8px;height:11px;border-radius:2px;background:#e7dcc8;border:1px solid #c9b79c}.pips i.on{background:var(--acc2);border-color:#b97a1e}
 .btn{min-height:44px;padding:8px 14px;border-radius:12px;border:2px solid var(--edge);background:var(--paper2);font-weight:800;box-shadow:0 2px 0 rgba(51,35,46,.25);display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn.primary{background:var(--acc);color:#fff}.btn.good{background:var(--good);color:#fff}.btn.sm{min-height:36px;padding:4px 10px;font-size:14px}
-.btn:disabled{opacity:.45}
+.btn:disabled{opacity:.45}.btn.off{opacity:.6}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:var(--paper2);border:1.5px solid #d9c3a0;font-size:13px;white-space:nowrap}
 .meter{height:8px;border-radius:5px;background:#e7dcc8;border:1.5px solid var(--edge);overflow:hidden;margin-top:3px}.meter i{display:block;height:100%}
 #modes{position:absolute;right:calc(env(safe-area-inset-right,0px) + 8px);display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -183,6 +183,8 @@ body.smooth .item canvas{image-rendering:auto}
 .item span{font-size:13px;color:#3f8a35;font-weight:900}
 .item.sel{border-color:var(--acc);box-shadow:0 0 0 3px rgba(232,102,46,.35)}
 .hint{font-size:13px;color:var(--ink2);margin:4px 2px 0}
+.exrow{margin-top:4px;display:flex;align-items:center;gap:8px}.exrow .tabsx{flex:1;min-width:0}.exrow .exl{flex:none;width:74px;font-size:13px;font-weight:800;line-height:1.15;margin-left:2px}.exrow .exl small{display:block;font-weight:700;color:var(--ink2)}
+@media(max-height:560px){.exrow .tabsx button{min-height:34px;padding:3px 9px}#build .exrow~.hint{display:none}}.tabsx button .sw{display:inline-block;border-radius:6px;border:2px solid rgba(51,35,46,.35)}
 /* mouse and keyboard on a PC (body.mouse is set by DESK): visible strip scrollbars, hover states, wider panels */
 body.mouse .tabsx,body.mouse .items{scrollbar-width:thin;scrollbar-color:rgba(51,35,46,.3) transparent}
 body.mouse .tabsx::-webkit-scrollbar,body.mouse .items::-webkit-scrollbar{display:block;height:6px}
@@ -194,10 +196,17 @@ body.mouse .btn:not(:disabled):hover,body.mouse .pill button:hover{filter:bright
 .sw.on{outline:3px solid var(--acc);outline-offset:2px}
 #place{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:4;pointer-events:none}
 #place .btn{pointer-events:auto}
-#welcome{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);width:min(420px,calc(100vw - 24px));padding:16px 16px 14px;z-index:8}
+#welcome{position:absolute;inset:0;display:grid;place-items:center;padding:16px;z-index:8;pointer-events:auto;background:linear-gradient(rgba(36,24,34,.12),rgba(36,24,34,.5))}
+#welcome .wcard{width:min(440px,100%);max-height:calc(100vh - 32px);overflow-y:auto;padding:18px 18px 12px}
+#welcome .wsub{font-size:16px}.wsave{display:flex;gap:12px;align-items:center;margin-top:12px;padding:10px 12px;border:2px solid var(--edge);border-radius:14px;background:var(--paper2)}
+.wsave b{font-size:16px}.wfaces{display:flex;flex:none;padding-right:8px}.wfaces img{width:44px;height:44px;border-radius:10px;border:2px solid var(--edge);background:#fff;margin-right:-8px;image-rendering:auto}
+.wacts{display:flex;flex-direction:column;gap:8px;margin-top:14px}.wacts .btn{width:100%}.btn.big{min-height:54px;font-size:19px}
+.wopts{display:grid;gap:8px;margin-top:12px}.wopt{display:flex;gap:12px;align-items:center;text-align:left;padding:10px 12px;border:2px solid var(--edge);border-radius:14px;background:var(--paper2);box-shadow:0 2px 0 rgba(51,35,46,.25)}
+.wopt>span{display:flex;flex-direction:column;gap:2px}.wopt b{font-size:17px}.wopt span span{font-size:13px;color:var(--ink2);font-weight:700}.wopt:active{transform:translateY(1px)}body.mouse .wopt:hover{border-color:var(--acc)}
+.wwarn{margin:10px 2px 0;color:#a8412e}.wnote{margin:12px 0 0;text-align:center}
 #welcome h1{margin:0;font:700 clamp(32px,9vw,44px)/1.05 "Pixelify Sans",Nunito,sans-serif;letter-spacing:-.5px;color:var(--ink)}
 #welcome h1 img{display:inline-block;vertical-align:-3px;margin-right:6px}
-#welcome p{margin:8px 0 0;font-size:15px}
+#welcome p{margin:8px 0 0;font-size:15px}#welcome p.small{font-size:13px}
 #skip{position:absolute;left:50%;transform:translateX(-50%);font-weight:800;z-index:3;white-space:nowrap}
 #cas{position:absolute;inset:0;z-index:20;overflow-y:auto;touch-action:pan-y;background:#3f5e49;pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-right,0px) + 12px) calc(env(safe-area-inset-bottom,0px) + 90px) calc(env(safe-area-inset-left,0px) + 12px)}
 #cas .wrap{max-width:760px;margin:0 auto;display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
@@ -209,7 +218,7 @@ body.mouse .btn:not(:disabled):hover,body.mouse .pill button:hover{filter:bright
 #cas .members{display:flex;gap:8px;flex-wrap:wrap}
 #cas .opts{padding:12px}
 #cas .line{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 2px}
-#cas label{font-size:13px;font-weight:800;color:var(--ink2);display:block;margin-top:10px}
+#cas label{font-size:13px;font-weight:800;color:var(--ink2);display:block;margin-top:10px}#cas label.need{color:#c0392b;font-size:15px}#cas .btn.needm{border-color:#c0392b}#cas .btn small{font-size:11px;opacity:.8}
 #cas input{font:inherit;font-size:16px;padding:9px 12px;border-radius:12px;border:2px solid var(--edge);background:#fff;width:100%;user-select:text;-webkit-user-select:text}
 .namegrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .traits{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-top:6px}
@@ -221,7 +230,7 @@ body.mouse .btn:not(:disabled):hover,body.mouse .pill button:hover{filter:bright
 .opt-ico{width:44px;height:44px;border-radius:12px;border:2px solid var(--edge);background:#fff;display:grid;place-items:center}
 .opt-ico.on{outline:3px solid var(--acc);outline-offset:2px}
 .opt-ico canvas{width:36px;height:36px;image-rendering:pixelated}
-body.wel #modes,body.wel #portraits,body.wel #queue,body.wel #toasts{display:none}
+body.wel #modes,body.wel #portraits,body.wel #queue,body.wel #toasts,body.wel #speed,body.wel #zoom{display:none}
 @media(max-height:520px){.tabbody{max-height:22vh}.needs{gap:4px 10px;margin-top:6px}#sheet{padding:8px 10px 10px}.tabs{margin-top:6px}.tabs button{height:36px}#toasts{top:calc(env(safe-area-inset-top,0px) + 60px)}#portraits{top:calc(env(safe-area-inset-top,0px) + 110px)}}
 @media(max-width:380px){.seg button{width:36px}#zoom button{width:40px}#clock b,#cash{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.toast{animation:none}.bar i{transition:none}}
@@ -249,6 +258,7 @@ body.wel #modes,body.wel #portraits,body.wel #queue,body.wel #toasts{display:non
   <div id="zoom" class="pill seg" role="group" aria-label="Zoom">
    <button data-z="-1" data-tip="zoom:out" aria-label="Zoom out"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12.6 12.6l4.6 4.6" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M5.6 8.5h5.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
    <button data-z="1" data-tip="zoom:in" aria-label="Zoom in"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12.6 12.6l4.6 4.6" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M5.6 8.5h5.8M8.5 5.6v5.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+   <button data-z="walls" data-tip="zoom:walls" aria-label="Walls up or down" aria-pressed="false"><svg viewBox="0 0 20 20"><path d="M2.6 9.4L10 3.2l7.4 6.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.6 8.6v8.2h10.8V8.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.6 16.8v-4.4h2.8v4.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
    <button data-z="town" data-tip="zoom:town" aria-label="Town map"><svg viewBox="0 0 20 20"><path d="M2.5 5.2l4.6-2 5.8 2 4.6-2v11.6l-4.6 2-5.8-2-4.6 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7.1 3.2v11.6M12.9 5.2v11.6" stroke="currentColor" stroke-width="1.8"/></svg></button>
   </div>
   </div>
@@ -268,7 +278,7 @@ body.wel #modes,body.wel #portraits,body.wel #queue,body.wel #toasts{display:non
  <div id="build" class="card hidden"></div>
  <div id="place" class="hidden"></div>
  <div id="ctx" class="card hidden"></div>
- <div id="welcome" class="card hidden"></div>
+ <div id="welcome" class="hidden"></div>
  <div id="modal" class="hidden"><div class="card" id="mcard" role="dialog" aria-modal="true"></div></div>
  <div id="cas" class="hidden"></div>
 </div>

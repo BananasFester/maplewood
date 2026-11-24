@@ -1,7 +1,7 @@
 """Lot choice: empty lot vs starter home, furnished vs unfurnished prices, buying each, clean empty lots, walkway from a new front door."""
 import asyncio, json
 from playwright.async_api import async_playwright
-from common import URL, SHOTS as S, launch_opts
+from common import URL, SHOTS as S, launch_opts, pick_traits
 CARD="()=>document.getElementById('tcard').innerText.split(String.fromCharCode(10)).filter(x=>x.trim()).join(' | ')"
 async def main():
     async with async_playwright() as p:
@@ -14,6 +14,7 @@ async def main():
             pg.on('console', lambda m: errs.append(m.type+': '+m.text) if m.type=='error' and 'TUNNEL' not in m.text and '404' not in m.text else None)
             await pg.goto(URL); await pg.wait_for_timeout(1200)
             await pg.tap('#wn'); await pg.wait_for_timeout(500)
+            await pick_traits(pg)
             await pg.tap('#cas [data-x="done"]'); await pg.wait_for_timeout(1000)
             return pg
         pg = await newpage()

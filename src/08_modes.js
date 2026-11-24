@@ -9,19 +9,19 @@ const BB={cat:'seating',placing:null,tool:'room',drag:null,floor:'wood',wp:'crea
   else for(const[k,d]of Object.entries(CATALOG)){if(d.c!==this.cat)continue;const b=document.createElement('button');b.className='item'+(this.placing&&this.placing.type===k&&!this.placing.moving?' sel':'');b.appendChild(this.thumb(catalogThumb(k,0)));
    b.insertAdjacentHTML('beforeend',`<b>${esc(d.n)}</b><span>${money(d.p)}</span>`);b.setAttribute('aria-label',`${d.n}, ${money(d.p)}`);b.dataset.tip='obj:'+k;b.onclick=()=>{sfx('click');this.startPlace(k);};box.appendChild(b);}
   el.querySelector('.tabsx').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;this.cat=b.dataset.c;sfx('click');this.renderBuy();};UI.layout();},
- startPlace(type,o){o=o||{};const d=CATALOG[type];const c=screenToWorld(innerWidth/2,innerHeight*.42);let x=Math.floor(c.x/T)-Math.floor((d.w-1)/2),y=Math.floor(c.y/T)-Math.floor((d.h-1)/2);
+ startPlace(type,o){o=o||{};const d=defFor(type,o.moving?o.moving.rot:0);const c=screenToWorld(innerWidth/2,innerHeight*.42);let x=Math.floor(c.x/T)-Math.floor((d.w-1)/2),y=Math.floor(c.y/T)-Math.floor((d.h-1)/2);
   if(o.moving){x=o.moving.x;y=o.moving.y;}
   if(d.wall&&!o.moving){let best=null,bd=1e9;for(let yy=0;yy<LOTH;yy++)for(let xx=0;xx<MW;xx++){if(canPlace(type,xx,yy,0)===true){const dd=Math.hypot(xx-x,yy-y);if(dd<bd){bd=dd;best=[xx,yy];}}}if(best)[x,y]=best;}
   this.placing={type,variant:o.moving?o.moving.variant:0,rot:o.moving?o.moving.rot:0,x,y,moving:o.moving||null,inv:o.inv||null};this.renderPlaceBar();if(G.mode==='buy'&&!o.moving)this.renderBuy();},
  renderPlaceBar(){const p=this.placing,el=$('#place');if(!p){el.classList.add('hidden');return;}const d=CATALOG[p.type];const ok=canPlace(p.type,p.x,p.y,p.rot,p.moving)===true;
   const price=p.moving||p.inv?0:d.p;
-  el.innerHTML=`${d.rot?`<button class="btn" data-p="rot">${SVG.rot} Turn</button>`:''}${d.cols?`<button class="btn" data-p="col"><span class="sw" style="width:20px;height:20px;background:${d.cols[p.variant]}"></span> Color</button>`:''}<button class="btn" data-p="x">Cancel</button><button class="btn ${ok?'good':''}" data-p="ok" ${ok?'':'disabled'}>${p.moving?'Move here':p.inv?'Hang it':'Buy '+money(price)}</button>`;
-  el.classList.remove('hidden');el.onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;const a=b.dataset.p;sfx('click');if(a==='rot'){p.rot=p.rot?0:1;}if(a==='col'){p.variant=(p.variant+1)%d.cols.length;}if(a==='x'){this.cancel();return;}if(a==='ok'){this.confirm();return;}this.renderPlaceBar();};UI.layout();},
- ghostTo(tx,ty){const p=this.placing;if(!p)return;const d=CATALOG[p.type];
+  el.innerHTML=`${turnsOf(d)?`<button class="btn" data-p="rot" data-tip="place:turn">${SVG.rot} Turn</button>`:''}${d.cols?`<button class="btn" data-p="col"><span class="sw" style="width:20px;height:20px;background:${d.cols[p.variant]}"></span> Color</button>`:''}<button class="btn" data-p="x">Cancel</button><button class="btn ${ok?'good':'off'}" data-p="ok" ${ok?'':'aria-disabled="true"'}>${p.moving?'Move here':p.inv?'Hang it':'Buy '+money(price)}</button>`;
+  el.classList.remove('hidden');el.onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;const a=b.dataset.p;sfx('click');if(a==='rot'){p.rot=nextRot(d,p.rot);}if(a==='col'){p.variant=(p.variant+1)%d.cols.length;}if(a==='x'){this.cancel();return;}if(a==='ok'){this.confirm();return;}this.renderPlaceBar();};UI.layout();},
+ ghostTo(tx,ty){const p=this.placing;if(!p)return;const d=defFor(p.type,p.rot);
   if(d.wall){if(!(W.wt[I(clamp(tx,0,MW-1),clamp(ty,0,MH-1))]===1)&&isWall(tx,ty+1))ty++;p.x=tx;p.y=ty;}else{p.x=tx-Math.floor((d.w-1)/2);p.y=ty-Math.floor((d.h-1)/2);}this.renderPlaceBar();},
- onGhost(tx,ty){const p=this.placing;if(!p)return false;const d=CATALOG[p.type];return tx>=p.x-1&&tx<=p.x+d.w&&ty>=p.y-1&&ty<=p.y+d.h;},
+ onGhost(tx,ty){const p=this.placing;if(!p)return false;const d=defFor(p.type,p.rot);return tx>=p.x-1&&tx<=p.x+d.w&&ty>=p.y-1&&ty<=p.y+d.h;},
  confirm(){const p=this.placing;if(!p)return;const d=CATALOG[p.type];const v=canPlace(p.type,p.x,p.y,p.rot,p.moving);if(v!==true){toast(v,'frown');return;}
-  if(p.moving){const o=p.moving;o.x=p.x;o.y=p.y;o.rot=p.rot;o.variant=p.variant;}
+  if(p.moving){const o=p.moving;o.x=p.x;o.y=p.y;o.rot=p.rot;o.def=defFor(o.type,o.rot);o.variant=p.variant;}
   else if(p.inv){addObject('painting',p.x,p.y,{state:{art:p.inv.art,title:p.inv.title,value:p.inv.value},price:0});G.inv=G.inv.filter(i=>i!==p.inv);}
   else{if(G.money<d.p){toast('Not enough money','coin');sfx('bad');return;}G.money-=d.p;addObject(p.type,p.x,p.y,{rot:p.rot,variant:p.variant});for(const s of household())wishEvent(s,'buy',{cat:d.c});}
   refreshWorld();sfx('cash');addParticle({type:'spark',x:p.x*T+8,y:p.y*T,vx:0,vy:-10,life:.8});const keep=!p.moving&&!p.inv;const t=p.type;this.placing=null;$('#place').classList.add('hidden');
@@ -36,14 +36,22 @@ const BB={cat:'seating',placing:null,tool:'room',drag:null,floor:'wood',wp:'crea
   if(d.cols)opts.push({label:'Change color',icon:'painting',keep:1,fn:()=>{o.variant=((o.variant||0)+1)%d.cols.length;OBJ_SPR.clear();W.groundDirty=true;}});
   UI.ctxOpen(o.type==='painting'?(o.state.title||'Painting'):d.n,'',opts,sx,sy);},
  // ---------- build ----------
- renderBuild(){const el=$('#build');const tools=[['room','home','Room',''],['wall','wall','Walls',`${money(BUILD_COST.wall)} per tile`],['door','door','Door',money(BUILD_COST.door)],['window','window','Window',money(BUILD_COST.window)],['floor','floor','Floors',''],['paper','roller','Wallpaper',`${money(BUILD_COST.wallpaper)} per wall`],['remove','remove','Remove','Refunds half']];
+ renderBuild(){const el=$('#build');const tools=[['room','home','Room',''],['wall','wall','Walls',`${money(BUILD_COST.wall)} per tile`],['door','door','Door',money(BUILD_COST.door)],['window','window','Window',money(BUILD_COST.window)],['floor','floor','Floors',''],['paper','roller','Wallpaper',`${money(BUILD_COST.wallpaper)} per wall`],['remove','remove','Remove','Refunds half'],['ext','tree','Outside','']];
   let h=`<div class="tabsx">${tools.map(([k,i,l])=>`<button data-t="${k}" data-tip="tool:${k}" class="${this.tool===k?'on':''}">${ico(i,20)}${l}</button>`).join('')}</div>`;
-  const hint={room:'Drag a box to build a room: walls around the edge, the floor below inside. Use two fingers to move the camera.',wall:'Drag a line to build walls. Use two fingers to move the camera.',door:'Tap a straight wall to add a door.',window:'Tap a straight wall to add a window.',floor:'Drag a box to lay flooring. Use two fingers to move the camera.',paper:'Tap the floor inside a room to paper its back walls.',remove:'Drag across walls, doors or windows to remove them.'}[this.tool];
+  const hint={room:'Drag a box to build a room: walls around the edge, the floor below inside. Use two fingers to move the camera.',wall:'Drag a line to build walls. Use two fingers to move the camera.',door:'Tap a straight wall to add a door.',window:'Tap a straight wall to add a window.',floor:'Drag a box to lay flooring. Use two fingers to move the camera.',paper:'Tap the floor inside a room to paper its back walls.',remove:'Drag across walls, doors or windows to remove them.',ext:'Pick siding, a roof, shutters and a front door. The walls go up so you can see the outside.'}[this.tool];
   if(this.tool==='floor'||this.tool==='room')h+=`<div class="tabsx" style="margin-top:6px" id="sws">${Object.entries(FLOORS).filter(([k,f])=>f.l&&!(this.tool==='room'&&f.out)).map(([k,f])=>`<button data-f="${k}" data-tip="floor:${k}" class="${this.floor===k?'on':''}" aria-label="${f.l}"><canvas width="16" height="16" data-fl="${k}" style="width:24px;height:24px;image-rendering:pixelated"></canvas>${f.l} ${money(f.p)}</button>`).join('')}</div>`;
   if(this.tool==='paper')h+=`<div class="tabsx" style="margin-top:6px">${Object.entries(WALLPAPERS).map(([k,w])=>`<button data-w="${k}" data-tip="paper:${k}" class="${this.wp===k?'on':''}"><canvas width="16" height="16" data-wpp="${k}" style="width:24px;height:24px;image-rendering:pixelated"></canvas>${w.l}</button>`).join('')}</div>`;
-  h+=sayHint(hint);el.innerHTML=h;
+  if(this.tool==='ext'){const E=G.ext,row=(k,l,btns)=>`<div class="exrow"><span class="exl">${l} <small>${money(EXT_COST[k])}</small></span><div class="tabsx">${btns}</div></div>`,
+    sw=(k,cols,lab)=>cols.map((c,i)=>`<button data-ex="${k}" data-v="${c}" data-tip="ext:${k}" class="${E[k]===c?'on':''}" aria-label="${lab} ${i+1}"><span class="sw" style="width:22px;height:22px;background:${c}"></span></button>`).join('');
+   h+=row('siding','Siding',Object.entries(SIDINGS).map(([k,s])=>`<button data-ex="siding" data-v="${k}" data-tip="ext:siding" class="${E.siding===k?'on':''}"><canvas width="16" height="16" data-sd="${k}" style="width:24px;height:24px;image-rendering:pixelated"></canvas>${s.l}</button>`).join(''))
+    +row('roof','Roof',sw('roof',ROOF_COLS,'Roof color'))+row('shutter','Shutters',sw('shutter',SHUTTER_COLS,'Shutter color'))+row('door','Front door',sw('door',DOOR_COLS,'Door color'));}
+  h+=sayHint(hint);el.innerHTML=h;el.querySelectorAll('canvas[data-sd]').forEach(c=>siding(c.getContext('2d'),0,0,16,0,16,c.dataset.sd));
   el.querySelectorAll('canvas[data-fl]').forEach(c=>tileFloor(c.getContext('2d'),c.dataset.fl,0,0));el.querySelectorAll('canvas[data-wpp]').forEach(c=>wallpaper(c.getContext('2d'),c.dataset.wpp,0,0,0,16,16));
-  el.onclick=e=>{const b=e.target.closest('button');if(!b)return;sfx('click');if(b.dataset.t)this.tool=b.dataset.t;if(b.dataset.f)this.floor=b.dataset.f;if(b.dataset.w)this.wp=b.dataset.w;this.renderBuild();};UI.layout();},
+  el.onclick=e=>{const b=e.target.closest('button');if(!b)return;sfx('click');if(b.dataset.ex){this.setExt(b.dataset.ex,b.dataset.v);this.renderBuild();return;}
+   if(b.dataset.t){const was=this.tool;this.tool=b.dataset.t;if(this.tool==='ext'&&!R.wallsUp){this.autoWalls=1;setWallsUp(true);}else if(was==='ext'&&this.tool!=='ext'&&this.autoWalls){this.autoWalls=0;setWallsUp(false);}}if(b.dataset.f)this.floor=b.dataset.f;if(b.dataset.w)this.wp=b.dataset.w;this.renderBuild();};UI.layout();},
+ // the Outside tool: one price per change, for the whole house
+ setExt(k,v){if(G.ext[k]===v)return;const c=EXT_COST[k];if(G.money<c){toast(`That costs ${money(c)}`,'coin');sfx('bad');return;}G.money-=c;G.ext[k]=v;WALL_SPR.clear();sfx('build');UI.dirty=true;
+  const h=W.rooms.length?roofList()[0]:null;if(h)fxText((h.x0+h.x1+1)*T/2,h.y1*T-HT,'-'+money(c),'#ffb3a8');},
  lineTiles(a,b){const L=[];const dx=b[0]-a[0],dy=b[1]-a[1];if(Math.abs(dx)>=Math.abs(dy)){const s=Math.sign(dx)||1;for(let x=a[0];x!==b[0]+s;x+=s)L.push([x,a[1]]);}else{const s=Math.sign(dy);for(let y=a[1];y!==b[1]+s;y+=s)L.push([a[0],y]);}return L;},
  rectTiles(a,b){const L=[];for(let y=Math.min(a[1],b[1]);y<=Math.max(a[1],b[1]);y++)for(let x=Math.min(a[0],b[0]);x<=Math.max(a[0],b[0]);x++)L.push([x,y]);return L;},
  down(tx,ty){this.drag={a:[tx,ty],b:[tx,ty]};this.updPrev();},
@@ -77,7 +85,7 @@ const BB={cat:'seating',placing:null,tool:'room',drag:null,floor:'wood',wp:'crea
  clearPlants(list){if(!list.length)return;let v=0;for(const o of list){v+=Math.round((o.price||o.def.p)*.7);removeObject(o);}G.money+=v;refreshWorld();toast(`Cleared ${list.length===1?'a plant':list.length+' plants'} to make room (+${money(v)})`,'leaf');},
  roomBlocked(x,y){if(!inLot(x,y))return true;const i=I(x,y);if(W.wt[i])return false;const f=W.floor[i];if(f==='road'||f==='side')return true;if(W.objAt[i]&&!this.isPlant(W.objAt[i]))return true;return G.objects.some(o=>o.def.rug&&x>=o.x&&x<o.x+o.def.w&&y>=o.y&&y<o.y+o.def.h);},
  drawWorld(b){_g=b;b.fillStyle='rgba(255,255,255,.09)';for(let x=0;x<=MW;x++)b.fillRect(x*T,0,1,LOTH*T);for(let y=0;y<=LOTH;y++)b.fillRect(0,y*T,MW*T,1);
-  const p=this.placing;if(p){const d=CATALOG[p.type];const o={type:p.type,def:d,x:p.x,y:p.y,rot:p.rot,variant:p.variant,state:p.inv?{art:p.inv.art}:{},users:{}};const ok=canPlace(p.type,p.x,p.y,p.rot,p.moving)===true;
+  const p=this.placing;if(p){const d=defFor(p.type,p.rot);const o={type:p.type,def:d,x:p.x,y:p.y,rot:p.rot,variant:p.variant,state:p.inv?{art:p.inv.art}:{},users:{}};const ok=canPlace(p.type,p.x,p.y,p.rot,p.moving)===true;
    b.globalAlpha=.85;if(d.rug)drawRug(b,o,p.x*T,p.y*T);else if(d.wall){const[c,g]=mkc(14,12);drawWallDecor(g,o,0,0);b.drawImage(c,p.x*T+1,p.y*T-12);}else{const sp=objSprites(o);if(sp){b.drawImage(sp.base.c,p.x*T+sp.base.ox,p.y*T+sp.base.oy);if(sp.top)b.drawImage(sp.top.c,p.x*T+sp.top.ox,p.y*T+sp.top.oy);}}b.globalAlpha=1;
    b.fillStyle=ok?'rgba(95,200,90,.35)':'rgba(230,70,60,.4)';if(d.wall)b.fillRect(p.x*T,p.y*T-14,T,T);else b.fillRect(p.x*T,p.y*T,d.w*T,d.h*T);
    if(d.acts&&!d.wall&&!d.rug){b.fillStyle='rgba(255,255,255,.35)';for(let i=0;i<d.w;i++)b.fillRect((p.x+i)*T+5,(p.y+d.h)*T+5,6,6);}}
@@ -103,6 +111,7 @@ function hitObject(wx,wy,buy){let rug=null;const L=G.objects.slice().sort((a,b)=
 function tap(cx,cy){
  if(UI.modalOpen())return;if(!$('#ctx').classList.contains('hidden')){UI.ctxClose();return;}if(UI.welcomeOn)return;
  const w=screenToWorld(cx,cy),tx=Math.floor(w.x/T),ty=Math.floor(w.y/T);
+ if((G.mode==='live'||(G.mode==='buy'&&!BB.placing))&&roofAt(w.x,w.y)){toastOnceG('Walls are up. Tap the house button by the zoom buttons to see inside.');return;}
  if(G.mode==='buy'){if(BB.placing){BB.ghostTo(tx,ty);return;}const o=hitObject(w.x,w.y,true);if(o)BB.objTap(o,cx,cy);return;}
  if(G.mode!=='live')return;
  const s=hitSim(w.x,w.y);if(s){UI.simMenu(s,cx,cy);return;}
@@ -110,6 +119,7 @@ function tap(cx,cy){
  const o=hitObject(w.x,w.y,false);if(o){UI.objMenu(o,cx,cy);return;}
  const sel=selSim();if(sel&&!sel.away&&sel.onLot&&freeTile(tx,ty)){enqueue(sel,A('goto','Go Here','walk',[{k:'walk',x:tx,y:ty}]));R.marker={x:tx,y:ty,until:R.t+1.4};sfx('pop');}
 }
+function toastOnceG(msg){const k='g:'+msg;if(_toastOnce[k]&&performance.now()-_toastOnce[k]<6000)return;_toastOnce[k]=performance.now();toast(msg,'home');}
 // right-click without dragging: cancel placing, close a menu, or act like a tap (menus, walk here)
 function rightClick(cx,cy){if(UI.modalOpen()||UI.welcomeOn)return;if(!$('#ctx').classList.contains('hidden')){UI.ctxClose();return;}
  if(G.mode==='buy'&&BB.placing){BB.cancel();sfx('click');return;}if(G.mode==='build')return;tap(cx,cy);}
@@ -120,7 +130,7 @@ function initInput(){const c=R.cv;
   try{c.setPointerCapture(e.pointerId);}catch(_){}AU.init();IN.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   clearTimeout(IN.lp);if(IN.ptrs.size===1){IN.sx=e.clientX;IN.sy=e.clientY;IN.downAt=performance.now();IN.pan=false;IN.cx=R.camX;IN.cy=R.camY;IN.mode=null;R.zt=null;
    const w=screenToWorld(e.clientX,e.clientY),tx=Math.floor(w.x/T),ty=Math.floor(w.y/T);
-   if(G.mode==='build'&&!UI.modalOpen()){IN.mode='tool';BB.down(tx,ty);}else if(G.mode==='buy'&&BB.placing&&BB.onGhost(tx,ty))IN.mode='ghost';
+   if(G.mode==='build'&&!UI.modalOpen()&&BB.tool!=='ext'){IN.mode='tool';BB.down(tx,ty);}else if(G.mode==='buy'&&BB.placing&&BB.onGhost(tx,ty))IN.mode='ghost';
    else if(!UI.modalOpen()&&!UI.welcomeOn&&!(G.mode==='buy'&&BB.placing)){const px=e.clientX,py=e.clientY;IN.lp=setTimeout(()=>{if(IN.ptrs.size!==1||IN.pan||IN.mode)return;const w2=screenToWorld(px,py),d=worldTip(w2.x,w2.y);if(d&&TIP.showAt(d,px,py)){IN.mode='tip';UI.ctxClose();try{navigator.vibrate&&navigator.vibrate(8);}catch(_){}}},450);}}
   else if(IN.ptrs.size===2){const[a,b]=[...IN.ptrs.values()];if(IN.mode==='tool')BB.cancelDrag();if(IN.mode==='tip')TIP.hide();IN.mode='pinch';IN.pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:R.Z,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};}});
  c.addEventListener('pointermove',e=>{
@@ -160,8 +170,9 @@ function initInput(){const c=R.cv;
    if(UI.modalOpen()){if($('#cas').classList.contains('hidden')&&UI.mCancel){const f=UI.mCancel;UI.closeModal();f();}return;}
    if(TV.on&&!busy){if(TV.sel)TV.select(null);else if(TV.mode==='pick')TV.cancelPick();else TV.close();sfx('click');}}
   else if(k==='+'||k==='='){if(TV.on)TV.zoomStep(1);else zoomStep(1);}else if(k==='-'||k==='_'){if(TV.on)TV.zoomStep(-1);else zoomStep(-1);}
-  else if(k==='r'&&BB.placing&&!busy){const p=BB.placing;if(CATALOG[p.type].rot){p.rot=p.rot?0:1;BB.renderPlaceBar();sfx('click');}}
-  else if(k==='Enter'&&BB.placing&&!busy){BB.confirm();e.preventDefault();}});
+  else if(k==='r'&&BB.placing&&!busy){const p=BB.placing,d=CATALOG[p.type];if(turnsOf(d)){p.rot=nextRot(d,p.rot);BB.renderPlaceBar();sfx('click');}else toast(`The ${d.n.toLowerCase()} only goes one way`,'frown');}
+  else if(k==='Enter'&&BB.placing&&!busy){BB.confirm();e.preventDefault();}
+  else if(k==='h'&&!busy&&!TV.on&&G.started){toggleWalls();}});
  window.addEventListener('keyup',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;DESK.keys.delete(k);});
 }
 

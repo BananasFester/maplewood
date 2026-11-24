@@ -153,7 +153,7 @@ function lotPlanFor(l,furn){const fu=furn==null?!!l.furn:!!furn,key=l.id+(fu?':f
  if(TOWN)TOWN.plans[key]=P;return P;}
 function i2(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
 // live a household into a town lot
-function loadTownLot(l,furn){if(l.kind==='hart'){loadStarterMap();furnishStarter(furn===false);return;}const P=lotPlanFor(l,furn);applyPlan(P);refreshWorld();
+function loadTownLot(l,furn){G.ext=defaultExt();if(l.kind!=='hart')G.ext.roof=ROOFS[(l.seed>>>3)%ROOFS.length];if(l.kind==='hart'){loadStarterMap();furnishStarter(furn===false);return;}const P=lotPlanFor(l,furn);applyPlan(P);refreshWorld();
  for(const[t,x,y,o]of P.objs)addObject(t,x,y,Object.assign({},o||{}));for(const o of G.objects)o.bought=1;}
 function eventsOn(day){return TOWN_EVENTS.filter(e=>e.day===day%7);}
 function eventNow(poiKind){const h=hourOf(G.time),d=wday(G.time);return TOWN_EVENTS.find(e=>e.poi===poiKind&&e.day===d&&h>=e.from&&h<e.to)||null;}

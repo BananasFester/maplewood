@@ -1,7 +1,7 @@
 """Same town after going back, tappable event reminders, fishing derby, selling furniture, building a room over a tree."""
 import asyncio, json
 from playwright.async_api import async_playwright
-from common import URL, SHOTS as S, launch_opts
+from common import URL, SHOTS as S, launch_opts, pick_traits
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(**launch_opts())
@@ -12,6 +12,7 @@ async def main():
         await pg.goto(URL); await pg.wait_for_timeout(1200)
         # same town after going back to household setup
         await pg.tap('#wn'); await pg.wait_for_timeout(500)
+        await pick_traits(pg)
         await pg.tap('#cas [data-x="done"]'); await pg.wait_for_timeout(800)
         a = await pg.evaluate("()=>__ML.getTown().seed")
         await pg.tap('#tbar'); await pg.wait_for_timeout(400)

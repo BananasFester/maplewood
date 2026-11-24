@@ -5,6 +5,7 @@ const SVG={close:'<svg width="18" height="18" viewBox="0 0 18 18"><path d="M4 4l
  chevD:'<svg width="20" height="20" viewBox="0 0 20 20"><path d="M4 7l6 6 6-6" stroke="#33232e" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
  rot:'<svg width="18" height="18" viewBox="0 0 18 18"><path d="M14 9a5 5 0 1 1-2-4" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M10 2h4v4" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'};
 function toast(msg,icon,fn){UI.toast(msg,icon,fn);}
+function agoText(t){const m=Math.max(0,(Date.now()-t)/60000);if(m<2)return'just now';if(m<60)return Math.round(m)+' minutes ago';const h=m/60;if(h<24)return Math.round(h)===1?'an hour ago':Math.round(h)+' hours ago';const d=Math.round(h/24);return d===1?'yesterday':d+' days ago';}
 function sfx(n){AU.sfx(n);}
 function selectSim(s,center){if(!s)return;G.sel=s.id;UI.dirty=true;UI.ctxClose();if(center&&s.onLot)centerOn(s.x,s.y-12);}
 function selectNextSim(){const h=household().filter(p=>p.onLot&&!p.away&&p.id!==G.sel);if(h.length)selectSim(h[0]);}
@@ -22,7 +23,7 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
   $('#phoneBtn').innerHTML=`<img class="ico" width="30" height="30" alt="" src="${iconURL('phone')}">`;$('#phoneBtn').onclick=()=>{AU.init();sfx('click');UI.phone();};
   document.querySelectorAll('#speed button').forEach(b=>b.onclick=()=>{AU.init();G.speed=+b.dataset.s;G.skip=false;sfx('click');UI.dirty=true;});
   $('#menuBtn').onclick=()=>{AU.init();sfx('click');UI.menu();};
-  $('#zoom').onclick=e=>{const b=e.target.closest('[data-z]');if(!b)return;sfx('click');AU.init();const z=b.dataset.z;if(z==='town'){if(TV.on){if(TV.mode==='pick')TV.cancelPick();else TV.close();}else if(G.started&&!UI.welcomeOn)TV.open('browse');return;}if(TV.on)TV.zoomStep(+z);else zoomStep(+z);};
+  $('#zoom').onclick=e=>{const b=e.target.closest('[data-z]');if(!b)return;sfx('click');AU.init();const z=b.dataset.z;if(z==='walls'){if(!TV.on)toggleWalls();return;}if(z==='town'){if(TV.on){if(TV.mode==='pick')TV.cancelPick();else TV.close();}else if(G.started&&!UI.welcomeOn)TV.open('browse');return;}if(TV.on)TV.zoomStep(+z);else zoomStep(+z);};
   $('#skip').onclick=()=>{G.skip=true;sfx('click');$('#skip').classList.add('hidden');};
   $('#queue').onclick=(e)=>{const b=e.target.closest('.qchip');if(!b)return;const s=selSim();if(!s)return;const i=+b.dataset.i;const a=i<0?s.act:s.queue[i];if(a){cancelAct(s,a);sfx('pop');}};
   $('#portraits').onclick=(e)=>{const b=e.target.closest('.pbtn');if(!b)return;const s=personById(b.dataset.id);if(!s)return;if(s.id===G.sel&&s.onLot)centerOn(s.x,s.y-12);selectSim(s,true);sfx('click');};
@@ -99,7 +100,7 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
   for(const p of hh){const b=document.createElement('button');b.className='pbtn'+(p.id===G.sel?' sel':'')+(p.away?' away':'');b.dataset.id=p.id;b.dataset.tip='sim:'+p.id;b.style.setProperty('--mood',moodLevel(moodScore(p)).c);b.setAttribute('aria-label','Select '+p.name);b.appendChild(pcanvas(p));
    if(p.away){const bd=document.createElement('span');bd.className='badge';bd.innerHTML=ico(p.away.kind==='work'?'job':p.away.kind==='out'?'map':'fitness',16);b.appendChild(bd);}el.appendChild(b);}},
  // ---------- modes ----------
- setMode(m){if(m===G.mode)return;
+ setMode(m){if(m===G.mode)return;if(BB.autoWalls&&m!=='build'){BB.autoWalls=0;setWallsUp(false);}
   if(m==='live'&&G.fresh&&G.started){const miss=homeChecks().filter(c=>!c.ok);const go=()=>{G.fresh=false;this.setMode('live');sfx('good');toast(`Welcome home! The ${household()[0].last} household moved in.`,'home');autosave(true);};
    if(miss.length){this.confirm('Move in now?',`Your home is still missing: ${miss.map(c=>esc(c.l.toLowerCase())).join(', ')}. Needs start dropping once the clock runs.`,'Move in anyway',go);return;}G.fresh=false;setTimeout(()=>toast(`Welcome home! The ${household()[0].last} household moved in.`,'home'),50);sfx('good');}
   this.ctxClose();if(m!=='live'&&this.welcomeOn)this.hideWelcome();G.mode=m;$('#sheet').classList.toggle('hidden',m!=='live');$('#buy').classList.toggle('hidden',m!=='buy');$('#build').classList.toggle('hidden',m!=='build');
@@ -198,13 +199,13 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
   <div class="sec">Display</div><div class="line" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${GLS.ok?`<button class="btn sm ${R.smooth?'primary':''}" data-x="smooth">Smooth art ${R.smooth?'on':'off'}</button><span class="small">${R.smooth?'Rounded, easy-to-read pixels':'Classic crisp pixels'}</span>`:'<span class="small">Smooth art needs WebGL, which this browser has turned off.</span>'}</div>
   <div class="sec">Free will</div><div style="display:flex;gap:8px;flex-wrap:wrap">${[['full','Everyone'],['others','All but selected'],['off','Off']].map(([k,l])=>`<button class="btn sm ${fw===k?'primary':''}" data-f="${k}">${l}</button>`).join('')}</div>
   <p class="small">With free will, people look after their own needs when you leave them idle.</p>
-  <div class="actions" style="justify-content:flex-start"><button class="btn" data-x="help">How to play</button><button class="btn" data-x="tour">Replay tour</button><button class="btn" data-x="cas">New household</button><button class="btn" data-x="harts">Restart with the Harts</button><button class="btn good" data-x="save">Save now</button></div>
+  <div class="actions" style="justify-content:flex-start"><button class="btn" data-x="help">How to play</button><button class="btn" data-x="tour">Replay tour</button><button class="btn" data-x="cas">New household</button><button class="btn" data-x="harts">Restart with the Harts</button><button class="btn good" data-x="save">Save now</button><button class="btn" data-x="title">Main menu</button></div>
   <div class="actions"><button class="btn primary" id="mx">Back to the game</button></div>`,()=>{});
   $('#mx').onclick=()=>this.closeModal();
   $('#mcard').onclick=e=>{const b=e.target.closest('button');if(!b)return;const x=b.dataset.x;
    if(b.dataset.f){G.freeWill=b.dataset.f;this.menu();}
    if(x==='music'){G.settings.music=!G.settings.music;AU.init();AU.apply();this.menu();}if(x==='sfx'){G.settings.sfx=!G.settings.sfx;this.menu();}if(x==='nextsong'){MUS.skip();setTimeout(()=>{if(this.modalOpen())this.menu();},80);}if(x==='smooth'){G.settings.smooth=!R.smooth;applySmooth(G.settings.smooth);if(G.mode==='buy')BB.renderBuy();this.menu();}
-   if(x==='save'){autosave(true);toast('Game saved','star');this.closeModal();}if(x==='help')this.help();if(x==='tour'){this.closeModal();TUT.start(G.fresh?'fresh':'harts',true);}
+   if(x==='save'){autosave(true);toast('Game saved','star');this.closeModal();}if(x==='title'){autosave(true);G.loadedAt=Date.now();this.closeModal();this.welcome('continue');}if(x==='help')this.help();if(x==='tour'){this.closeModal();TUT.start(G.fresh?'fresh':'harts',true);}
    if(x==='cas'){this.closeModal();this.cas('new');}if(x==='harts')this.confirm('Restart with the Harts?','This replaces your current household and house.','Restart',()=>{startSample();centerHome();autosave(true);});};},
  help(){const rows=[[ico('leaf',24,'',{o:'#6fbd52'}),'Tap furniture to choose what your person does. Actions line up at the top left; tap one to cancel it.'],
    [ico('hammer',24),'In Build mode, Room draws four walls and a floor in one drag. Add a door so people can get in.'],
@@ -215,55 +216,74 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
    [ico('job',24),'Get a job from the phone. The carpool comes 30 minutes before each shift. Build the career skill to get promoted.'],
    [ico('sofa',24),'Buy mode places furniture; Build mode draws walls, doors, windows, floors and wallpaper. The game pauses in both.'],
    [ico('star',24),'Wishes earn happiness points. Spend them on lifetime rewards in the Wishes tab.']];
-  if(DESK.mouse)rows.push([ico('sun',24),'Keys: Space pauses and 1 to 3 set the speed. Arrows or WASD move the camera, and + and - zoom. In Buy mode, R turns an item and Enter places it. Esc closes menus and the town map.']);
+  if(DESK.mouse)rows.push([ico('sun',24),'Keys: Space pauses and 1 to 3 set the speed. Arrows or WASD move the camera, and + and - zoom. H puts the walls up or down. In Buy mode, R turns an item and Enter places it. Esc closes menus and the town map.']);
   this.modal(`<h2>How to play</h2>${rows.map(([i,t])=>`<div class="row">${i}<div class="grow">${esc(say(t))}</div></div>`).join('')}
   <div class="actions"><button class="btn primary" id="mx">Got it</button></div>`,()=>{});$('#mx').onclick=()=>this.closeModal();},
  offerCloud(d){this.queueModal(()=>this.modal(`<h2>Newer save found</h2><p>Your account has a saved game from ${esc(DAYS[wday(d.time)])} ${esc(clockStr(d.time))}, day ${dayOf(d.time)+1}, with ${money(d.money)}. Load it?</p><div class="actions"><button class="btn" id="mn">Keep this one</button><button class="btn primary" id="my">Load it</button></div>`,()=>{}));
   setTimeout(()=>{const y=$('#my'),n=$('#mn');if(y)y.onclick=()=>{loadGame(d);G.loadedAt=d.savedAt;centerHome();this.closeModal();toast('Loaded your saved game','star');};if(n)n.onclick=()=>this.closeModal();},80);},
- welcome(kind){const el=$('#welcome');this.welcomeOn=true;G.paused=true;
-  if(kind==='continue'){const s=household()[0];el.innerHTML=`<h1 class="px">${ico('leaf',32,'',{o:'#e8662e'})}Maplewood</h1><p>Welcome back to the ${esc(s?s.last:'')} house. It's ${DAYS[wday(G.time)]}, ${clockStr(G.time)}.</p><div class="actions"><button class="btn" id="wn">New household</button><button class="btn primary" id="wp">Continue</button></div>`;}
-  else el.innerHTML=`<h1 class="px">${ico('leaf',32,'',{o:'#e8662e'})}Maplewood</h1><p>${esc(say('Meet Jamie and Alex Hart, just settling in on Maple Lane in the town of Maplewood this fall. Tap anything in the house to give them something to do, or start fresh with people of your own.'))}</p><div class="actions"><button class="btn" id="wn">Create a household</button><button class="btn primary" id="wp">Play the Harts</button></div>`;
+ // the start menu: continue the saved game, or start a new one (the Harts, or a household of your own)
+ welcome(kind,step){const el=$('#welcome'),has=kind==='continue',hh=household(),last=hh[0]?hh[0].last:'';this.welcomeOn=true;G.paused=true;this.ctxClose();
+  const title=`<h1 class="px">${ico('leaf',32,'',{o:'#e8662e'})}Maplewood</h1>`;let body;
+  if(has&&step!=='new'){let where='';try{const l=homeLot();where=l?`${lotName(l)}, ${TOWN.name}`:'';}catch(_){}
+   const faces=hh.map(p=>`<img src="${pcanvas(p).toDataURL()}" alt="" width="44" height="44">`).join('');
+   body=`<p class="wsub">Welcome back.</p><div class="wsave"><div class="wfaces">${faces}</div><div class="grow"><b>The ${esc(last)} household</b>
+    <div class="small">${esc(hh.map(p=>p.first).join(', '))}${where?' · '+esc(where):''}</div>
+    <div class="small">Day ${dayOf(G.time)+1} · ${DAYS[wday(G.time)]} ${clockStr(G.time)} · ${money(G.money)}</div>${G.loadedAt?`<div class="small">Last played ${esc(agoText(G.loadedAt))}</div>`:''}</div></div>
+    <div class="wacts"><button class="btn primary big" id="wp">Continue</button><button class="btn" id="wn">New game</button></div>`;}
+  else body=`<p class="wsub">${has?'Start a new game':esc(say('Meet Jamie and Alex Hart, just settling in on Maple Lane in the town of Maplewood this fall. Tap anything in the house to give them something to do, or start fresh with people of your own.'))}</p>
+    <div class="wopts"><button class="wopt" id="wp">${ico('home',28)}<span><b>Play the Harts</b><span>A furnished cottage on Maple Lane, ready to move in.</span></span></button>
+    <button class="wopt" id="wn">${ico('people',28)}<span><b>Create a household</b><span>Make your own people, then pick a home in a brand new town.</span></span></button></div>
+    ${has?`<p class="small wwarn">A new game replaces your saved game with the ${esc(last)} household.</p><div class="wacts"><button class="btn" id="wb">Back</button></div>`:''}`;
+  el.innerHTML=`<div class="wcard card">${title}${body}<p class="small wnote">Your game saves by itself in this browser, on this device.</p></div>`;
   el.classList.remove('hidden');$('#sheet').classList.add('hidden');document.body.classList.add('wel');
-  $('#wp').onclick=()=>{AU.init();sfx('good');this.hideWelcome();if(kind!=='continue')TUT.start('harts');};$('#wn').onclick=()=>{AU.init();this.hideWelcome();this.cas('new');};},
+  if(has&&step!=='new'){$('#wp').onclick=()=>{AU.init();sfx('good');this.hideWelcome();};$('#wn').onclick=()=>{AU.init();sfx('click');this.welcome('continue','new');};return;}
+  const go=fn=>{AU.init();if(has)this.confirm('Start a new game?',`Your saved game with the ${esc(last)} household will be replaced.`,'Start new game',fn);else fn();};
+  $('#wp').onclick=()=>go(()=>{sfx('good');if(has){startSample();centerHome();autosave(true);}this.hideWelcome();TUT.start('harts');});
+  $('#wn').onclick=()=>go(()=>{this.hideWelcome();this.cas('new',null,{back:has?'continue':'new'});});
+  if(has)$('#wb').onclick=()=>{sfx('click');this.welcome('continue');};},
  hideWelcome(){this.welcomeOn=false;G.paused=false;document.body.classList.remove('wel');$('#welcome').classList.add('hidden');if(G.mode==='live')$('#sheet').classList.remove('hidden');this.dirty=true;this.layout();
   if(G.fresh&&G.mode==='live')this.setMode(G.lot==='shell'?'buy':'build');
   setTimeout(()=>{if(TUT.active())return;try{if(localStorage.getItem('mapleLane.tipHint'))return;localStorage.setItem('mapleLane.tipHint','1');}catch(_){}toast('Tip: press and hold anything to see what it is and what it does.','star');},1800);},
 };
 
 // ---------- Create a Sim ----------
-function randomLook(){return{skin:ri(0,5),hair:pick(HAIRS.filter(h=>h!=='bald').concat(['bald'])),hairC:pick(HAIR_COLS.slice(0,7)),top:pick(TOP_COLS),topS:pick(['tee','long']),bot:pick(BOT_COLS),botS:pick(['pants','pants','shorts','skirt']),shoes:pick(SHOE_COLS),beard:chance(.25)?1:0};}
+function randomLook(body){body=body||(chance(.5)?'f':'m');const f=body==='f';
+ return{body,skin:ri(0,5),hair:pick(f?['long','bob','ponytail','bun','curly','short']:['short','curly','spiky','buzz','bald','short']),hairC:pick(HAIR_COLS.slice(0,7)),top:pick(TOP_COLS),topS:pick(['tee','long']),bot:pick(BOT_COLS),botS:pick(f?['pants','shorts','skirt','skirt']:['pants','pants','shorts']),shoes:pick(SHOE_COLS),beard:!f&&chance(.3)?1:0};}
+function randomPerson(last,body){const app=randomLook(body);return{first:pick(app.body==='f'?FIRSTS_F:FIRSTS_M),last,app,traits:[],autoName:1};}
 function randomTraits(){const L=[];const keys=Object.keys(TRAITS);while(L.length<3){const k=pick(keys);if(L.includes(k)||L.some(t=>TRAITS[t].opp===k||TRAITS[k].opp===t))continue;L.push(k);}return L;}
 function previewSprite(app,dir,pose,f){const tmp={id:'cas',app,appKey:'cas'+JSON.stringify(app),_cols:null};return simSprite(tmp,dir,pose||'idle',f||0,'happy');}
-UI.cas=function(mode,sim){const st={mode,sim,cur:0,dir:'down',members:[]};
+UI.cas=function(mode,sim,opt){const st={mode,sim,cur:0,dir:'down',members:[],back:opt&&opt.back};
  if(mode==='edit')st.members=[{first:sim.first,last:sim.last,app:Object.assign({},sim.app),traits:sim.traits.slice()}];
- else st.members=[{first:pick(FIRSTS),last:pick(LASTS),app:randomLook(),traits:[]}];
+ else st.members=[randomPerson(pick(LASTS))];
  this.casSt=st;$('#cas').classList.remove('hidden');this.ctxClose();this.renderCas();};
 UI.renderCas=function(){const st=this.casSt,m=st.members[st.cur],a=m.app,el=$('#cas');const sw=(k,cols,val)=>cols.map((c,i)=>`<button class="sw ${(typeof val==='number'?i===val:c===val)?'on':''}" style="background:${c}" data-k="${k}" data-v="${typeof val==='number'?i:c}" aria-label="${k} option ${i+1}"></button>`).join('');
  const hairBtns=HAIRS.map(hs=>`<button class="opt-ico ${a.hair===hs?'on':''}" data-k="hair" data-v="${hs}" aria-label="${hs} hair"><canvas data-hp="${hs}" width="18" height="18"></canvas></button>`).join('');
  const seg=(k,opts,val)=>opts.map(([v,l])=>`<button class="btn sm ${val===v?'primary':''}" data-k="${k}" data-v="${v}">${l}</button>`).join('');
  const tsel=m.traits;const traits=Object.entries(TRAITS).map(([k,t])=>{const on=tsel.includes(k),block=!on&&(tsel.length>=3||tsel.some(x=>TRAITS[x].opp===k||t.opp===x));return`<button class="trait ${on?'on':''}" data-t="${k}" ${block?'disabled':''}>${t.l}<small>${t.d}</small></button>`;}).join('');
  el.innerHTML=`<div class="wrap"><div><h2>${st.mode==='edit'?'Change look':'Create a household'}</h2>
-  ${st.mode==='new'?`<div class="members" style="margin-top:10px">${st.members.map((x,i)=>`<button class="btn sm ${i===st.cur?'primary':''}" data-mem="${i}">${esc(x.first||'New')}</button>`).join('')}${st.members.length<4?'<button class="btn sm" data-mem="add">+ Add person</button>':''}${st.members.length>1?'<button class="btn sm" data-mem="del">Remove</button>':''}</div>`:''}
+  ${st.mode==='new'?`<div class="members" style="margin-top:10px">${st.members.map((x,i)=>`<button class="btn sm ${i===st.cur?'primary':''} ${st.need&&x.traits.length<3?'needm':''}" data-mem="${i}">${esc(x.first||'New')}${x.traits.length<3?` <small>${x.traits.length}/3</small>`:''}</button>`).join('')}${st.members.length<4?'<button class="btn sm" data-mem="add">+ Add person</button>':''}${st.members.length>1?'<button class="btn sm" data-mem="del">Remove</button>':''}</div>`:''}
   <div class="stage" style="margin-top:10px"><canvas id="casPrev" width="18" height="30" style="width:108px;height:180px"></canvas><button class="round rot" style="left:10px;transform:scaleX(-1)" data-rot="-1" aria-label="Turn left">${SVG.rot}</button><button class="round rot" style="right:10px" data-rot="1" aria-label="Turn right">${SVG.rot}</button></div></div>
   <div class="card opts"><div class="namegrid"><div><label for="fn">First name</label><input id="fn" maxlength="14" value="${esc(m.first)}" autocomplete="off"></div><div><label for="ln">Last name</label><input id="ln" maxlength="16" value="${esc(m.last)}" autocomplete="off"></div></div>
+  <label>Gender</label><div class="line">${seg('body',[['f','Female'],['m','Male']],bodyOf(a))}</div>
   <label>Skin</label><div class="line">${sw('skin',SKINS,a.skin)}</div>
   <label>Hair</label><div class="line">${hairBtns}</div><div class="line">${sw('hairC',HAIR_COLS,a.hairC)}</div>
-  <label>Facial hair</label><div class="line">${seg('beard',[[0,'None'],[1,'Beard']],a.beard?1:0)}</div>
+  ${bodyOf(a)==='m'?`<label>Facial hair</label><div class="line">${seg('beard',[[0,'None'],[1,'Beard']],a.beard?1:0)}</div>`:''}
   <label>Top</label><div class="line">${seg('topS',[['tee','T-shirt'],['long','Long sleeves']],a.topS)}</div><div class="line">${sw('top',TOP_COLS,a.top)}</div>
   <label>Bottom</label><div class="line">${seg('botS',[['pants','Pants'],['shorts','Shorts'],['skirt','Skirt']],a.botS)}</div><div class="line">${sw('bot',BOT_COLS,a.bot)}</div>
   <label>Shoes</label><div class="line">${sw('shoes',SHOE_COLS,a.shoes)}</div>
-  ${st.mode==='new'?`<label>Traits (${tsel.length} of 3)</label><div class="traits">${traits}</div>`:''}</div></div>
-  <div class="foot"><button class="btn" data-x="rand">Randomize</button>${G.started?'<button class="btn" data-x="cancel">Cancel</button>':''}<button class="btn primary" data-x="done">${st.mode==='edit'?'Done':'Choose a lot'}</button></div>`;
+  ${st.mode==='new'?`<label id="ctl" class="${tsel.length<3&&st.need?'need':''}">Traits (${tsel.length} of 3)${tsel.length<3?` · pick ${3-tsel.length} more`:''}</label><div class="traits">${traits}</div>`:''}</div></div>
+  <div class="foot"><button class="btn" data-x="rand">Randomize</button>${G.started?'<button class="btn" data-x="cancel">Cancel</button>':''}<button class="btn primary ${st.mode==='new'&&st.members.some(x=>x.traits.length<3)?'off':''}" data-x="done">${st.mode==='edit'?'Done':'Choose a lot'}</button></div>`;
  el.querySelectorAll('canvas[data-hp]').forEach(c=>{const app=Object.assign({},a,{hair:c.dataset.hp});const sp=previewSprite(app,'down');c.getContext('2d').drawImage(sp,0,0,18,18,0,0,18,18);});
  this.drawCasPrev();
- $('#fn').oninput=e=>{m.first=e.target.value;};$('#ln').oninput=e=>{m.last=e.target.value;if(st.mode==='new')st.members.forEach(x=>x.last=m.last);};
+ $('#fn').oninput=e=>{m.first=e.target.value;m.autoName=0;};$('#ln').oninput=e=>{m.last=e.target.value;if(st.mode==='new')st.members.forEach(x=>x.last=m.last);};
  el.onclick=e=>{const b=e.target.closest('button');if(!b)return;AU.init();sfx('click');
-  if(b.dataset.k){const k=b.dataset.k;let v=b.dataset.v;if(k==='skin'||k==='beard')v=+v;a[k]=v;this.renderCas();return;}
+  if(b.dataset.k){const k=b.dataset.k;let v=b.dataset.v;if(k==='skin'||k==='beard')v=+v;a[k]=v;if(k==='body'&&v==='f')a.beard=0;if(k==='body'&&m.autoName&&st.mode==='new')m.first=pick(v==='f'?FIRSTS_F:FIRSTS_M);this.renderCas();return;}
   if(b.dataset.t){const k=b.dataset.t;if(m.traits.includes(k))m.traits=m.traits.filter(x=>x!==k);else if(m.traits.length<3)m.traits.push(k);this.renderCas();return;}
   if(b.dataset.rot){const ds=['down','left','up','right'];st.dir=ds[(ds.indexOf(st.dir)+(+b.dataset.rot)+4)%4];this.drawCasPrev();return;}
-  if(b.dataset.mem){if(b.dataset.mem==='add'){st.members.push({first:pick(FIRSTS),last:st.members[0].last,app:randomLook(),traits:[]});st.cur=st.members.length-1;}else if(b.dataset.mem==='del'){st.members.splice(st.cur,1);st.cur=0;}else st.cur=+b.dataset.mem;this.renderCas();return;}
-  const x=b.dataset.x;if(x==='rand'){m.app=randomLook();if(st.mode==='new')m.traits=randomTraits();if(st.mode==='new'&&!m.first)m.first=pick(FIRSTS);this.renderCas();}
-  if(x==='cancel'){$('#cas').classList.add('hidden');this.casSt=null;}
+  if(b.dataset.mem){if(b.dataset.mem==='add'){st.members.push(randomPerson(st.members[0].last));st.cur=st.members.length-1;}else if(b.dataset.mem==='del'){st.members.splice(st.cur,1);st.cur=0;}else st.cur=+b.dataset.mem;this.renderCas();return;}
+  const x=b.dataset.x;if(x==='rand'){m.app=randomLook(bodyOf(m.app));if(st.mode==='new')m.traits=randomTraits();if(st.mode==='new'&&!m.first)m.first=pick(bodyOf(m.app)==='f'?FIRSTS_F:FIRSTS_M);this.renderCas();}
+  if(x==='cancel'){$('#cas').classList.add('hidden');this.casSt=null;if(st.back)this.welcome(st.back);}
+  if(x==='done'&&st.mode==='new'){const miss=st.members.findIndex(mm=>mm.traits.length<3);if(miss>=0){st.cur=miss;st.need=1;sfx('bad');this.renderCas();const L=$('#ctl');if(L)L.scrollIntoView({behavior:'smooth',block:'center'});return;}}
   if(x==='done'){if(st.mode==='edit'){const s=st.sim;s.app=Object.assign({},m.app);s.first=(m.first||s.first).trim().slice(0,14);s.last=(m.last||s.last).trim().slice(0,16);s.refreshApp();$('#cas').classList.add('hidden');this.casSt=null;UI.dirty=true;return;}
    for(const mm of st.members){mm.first=(mm.first||pick(FIRSTS)).trim().slice(0,14)||pick(FIRSTS);mm.last=(mm.last||st.members[0].last||pick(LASTS)).trim().slice(0,16);if(mm.traits.length<3){const fill=randomTraits().filter(t=>!mm.traits.includes(t)&&!mm.traits.some(x=>TRAITS[x].opp===t||TRAITS[t].opp===x));while(mm.traits.length<3&&fill.length)mm.traits.push(fill.shift());}}
    const defs=st.members.map(mm=>({first:mm.first,last:mm.last,app:mm.app,traits:mm.traits,skills:{}}));

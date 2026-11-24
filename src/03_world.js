@@ -132,13 +132,27 @@ function freeTile(x,y){return inMap(x,y)&&!W.block[I(x,y)];}
 function nearestFree(x,y){if(freeTile(x,y))return[x,y];for(let r=1;r<8;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(freeTile(x+dx,y+dy))return[x+dx,y+dy];}return[x,y];}
 
 // ---------- objects ----------
-function addObject(type,x,y,opt){opt=opt||{};const def=CATALOG[type];if(!def)return null;
+function addObject(type,x,y,opt){opt=opt||{};const def=defFor(type,opt.rot);if(!def)return null;
  const o={id:opt.id||uid('o'),type,def,x,y,rot:opt.rot||0,variant:opt.variant||0,state:opt.state||{},users:{},price:opt.price!=null?opt.price:def.p,bought:opt.bought||0};
  G.objects.push(o);return o;}
 function removeObject(o){const i=G.objects.indexOf(o);if(i>=0)G.objects.splice(i,1);for(const s of G.people)if(s.inObj&&s.inObj.o===o)s.inObj=null;}
 function objAlive(o){return o&&G.objects.includes(o);}
+// ---------- facing ----------
+// o.rot: 0 faces down (toward the camera), 1 up, 2 left, 3 right. def.turn: 4 turns all four ways (one-tile
+// pieces), 2 turns front and back (wider pieces), none stays as drawn. Turning goes clockwise: down, left, up, right.
+const FACES=['down','up','left','right'],FVEC=[[0,1],[0,-1],[-1,0],[1,0]],OPP_ROT=[1,0,3,2],OPPF={down:'up',up:'down',left:'right',right:'left'};
+function turnsOf(d){return d&&d.turn||0;}
+// a wide piece turned sideways swaps its width and depth; every object keeps the def for its own facing in o.def
+const ROT_DEF={};
+function defFor(type,rot){const d=CATALOG[type];if(!d||!(rot>=2)||d.w===d.h||!turnsOf(d))return d;return ROT_DEF[type]||(ROT_DEF[type]=Object.assign({},d,{w:d.h,h:d.w,sideways:1}));}
+function nextRot(d,r){const t=turnsOf(d);r=r||0;return t===4?[2,3,1,0][r]:t===2?(r?0:1):0;}
+// the tiles a person stands on to use it from the front
+function frontTiles(d,x,y,rot){rot=rot||0;if(rot===0)return Array.from({length:d.w},(_,i)=>[x+i,y+d.h]);if(rot===1)return Array.from({length:d.w},(_,i)=>[x+i,y-1]);return Array.from({length:d.h},(_,i)=>[rot===2?x-1:x+d.w,y+i]);}
+// people only use things from the same room (or both outside): never through a wall
+function roomAt(x,y){return inMap(x,y)?W.room[I(x,y)]:-2;}
+function sameSide(o,x,y){return roomAt(o.x,o.y)===roomAt(x,y);}
 function canPlace(type,x,y,rot,ignore){
- const d=CATALOG[type];
+ const d=defFor(type,rot);
  if(d.wall){if(!inLot(x,y))return'Off the lot';const i=I(x,y);if(W.wt[i]!==1||!W.tall[i])return'Hang on a back wall';const e=W.decor[i];if(e&&e!==ignore)return'Something is already here';return true;}
  for(let dy=0;dy<d.h;dy++)for(let dx=0;dx<d.w;dx++){const tx=x+dx,ty=y+dy;if(!inLot(tx,ty))return'Off the lot';const i=I(tx,ty);
   if(W.wt[i])return'Blocked by a wall';const f=W.floor[i];if(f==='road'||f==='side')return'Not on the street';
@@ -146,6 +160,7 @@ function canPlace(type,x,y,rot,ignore){
   const oa=W.objAt[i];if(oa&&oa!==ignore)return'Something is in the way';
   if(doorFront(tx,ty))return'Keep the doorway clear';
   if((d.tree||d.plot)&&!FLOORS[f].out)return'Needs to go outside';}
+ if(turnsOf(d)&&d.acts)for(const[fx,fy]of frontTiles(d,x,y,rot)){if(!inLot(fx,fy)||W.wt[I(fx,fy)])return'It would face a wall. Turn it to face the room.';}
  return true;
 }
 // tiles directly in front of or behind a door must stay free so people can walk through

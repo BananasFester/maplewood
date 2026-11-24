@@ -5,7 +5,7 @@ function hasFrontDoor(){for(let y=0;y<LOTH;y++)for(let x=0;x<MW;x++){if(W.wt[I(x
 function reachMap(){const seen=new Uint8Array(N_TILES),q=[];const seed=(x,y)=>{if(!inMap(x,y))return;const i=I(x,y);if(W.block[i]||seen[i])return;seen[i]=1;q.push(i);};
  const hh=household().filter(s=>s.onLot&&!s.away);if(hh.length)for(const s of hh){const[x,y]=nearestFree(s.tx(),s.ty());seed(x,y);}else seed(13,SIDEY-1);
  while(q.length){const c=q.pop(),x=c%MW,y=(c/MW)|0;seed(x+1,y);seed(x-1,y);seed(x,y+1);seed(x,y-1);}return seen;}
-function canReach(o,seen){const d=o.def,ok=(x,y)=>inMap(x,y)&&seen[I(x,y)];
+function canReach(o,seen){const d=o.def,ok=(x,y)=>inMap(x,y)&&seen[I(x,y)]&&sameSide(o,x,y);
  for(let x=o.x;x<o.x+d.w;x++)if(ok(x,o.y-1)||ok(x,o.y+d.h))return true;for(let y=o.y;y<o.y+d.h;y++)if(ok(o.x-1,y)||ok(o.x+d.w,y))return true;return false;}
 function homeChecks(){const hh=Math.max(1,household().length),acts=(d,a)=>!!(d.acts&&d.acts.includes(a)),seen=reachMap();
  const st=f=>{const L=G.objects.filter(o=>f(o.def));return!L.length?0:L.some(o=>canReach(o,seen))?2:1;};

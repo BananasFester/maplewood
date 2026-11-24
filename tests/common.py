@@ -24,3 +24,10 @@ def launch_opts(*extra_args):
     if os.environ.get('CHROME_PATH'):
         opts['executable_path'] = os.environ['CHROME_PATH']
     return opts
+
+
+async def pick_traits(pg):
+    """Create-a-sim needs three traits per person before choosing a lot: tap the first three free ones."""
+    for _ in range(3):
+        await pg.locator('#cas .trait:not(.on):not([disabled])').first.tap()
+        await pg.wait_for_timeout(80)

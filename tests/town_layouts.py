@@ -1,7 +1,7 @@
 """Town picking in landscape and tablet sizes; the selected home stays visible beside the card."""
 import asyncio
 from playwright.async_api import async_playwright
-from common import URL, SHOTS as S, launch_opts
+from common import URL, SHOTS as S, launch_opts, pick_traits
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch(**launch_opts())
@@ -11,6 +11,7 @@ async def main():
             pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append('PAGEERROR: '+str(e)))
             await pg.goto(URL); await pg.wait_for_timeout(1200)
             await pg.tap('#wn'); await pg.wait_for_timeout(500)
+            await pick_traits(pg)
             await pg.tap('#cas [data-x="done"]'); await pg.wait_for_timeout(1000)
             await pg.screenshot(path=S+f'tp_{name}1.png')
             await pg.tap('#tcard [data-cat="starter"]')
