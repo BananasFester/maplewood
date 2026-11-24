@@ -85,6 +85,9 @@ together and the rules that keep it working.
 - `dist/release/index.html` plus `music/` is the whole game, so any static host works.
 - GitHub Pages: `.github/workflows/pages.yml` runs `build.sh` on each push to `main` and
   publishes `dist/release`.
+- Installable app: `web/` holds the manifest, icons and `sw.js`, copied next to the page by
+  `build.sh`. The service worker only registers on https (so never on the local test servers),
+  fetches the page fresh when online, and leaves `music/` to the network.
 - It started in the Claude app and is published there as a claude.ai artifact. The artifact
   runtime adds `window.claude` (cloud saves, hot reload). The game checks for it and runs fine
   without it.

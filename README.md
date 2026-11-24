@@ -54,6 +54,11 @@ tablet sizes work too.
 `.github/workflows/pages.yml` builds and publishes the release build to GitHub Pages on every
 push to `main`. To turn it on, set the repo's Settings > Pages > Source to "GitHub Actions".
 
+On a phone or tablet the published site installs as an app: in Chrome, open the menu and pick
+Install app (or Add to Home screen), or use Install as an app in the game's own menu. The files
+for that are in `web/` (manifest, service worker, icons) and `build.sh` copies them next to the
+page. Redraw the icons with `python3 tools/icons/make_icons.py` after a build.
+
 ## Project layout
 
 ```

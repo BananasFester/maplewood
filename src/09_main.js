@@ -20,4 +20,9 @@ function start(hot){
  window.__ML={G,W,R,UI,BB,gameStep,startSample,serialize,loadGame,household,personById,ACTS,enqueue,cookAct,RECIPES,socialAct,CATALOG,setZoom,centerOn,AU,MUS,GLS,TIP,applySmooth,zoomStep,tipData,worldTip,TUT,LOTS,startFresh,homeChecks,BB_:BB,loadLot,startHousehold,TV,genTown,getTown:()=>TOWN,lotPlanFor,moveHousehold,goOut,finishOuting,outingBlock,sellGoods};/*DEBUG*/window.__ML.ev=(c)=>eval(c);
  requestAnimationFrame(frame);setTimeout(cloudInit,120);
 }
+// installable app (see web/): the service worker runs on the published https site only, never on the local http
+// servers the tests use or inside the claude.ai artifact. The browser's install offer is kept for the menu's button.
+if('serviceWorker' in navigator&&location.protocol==='https:'&&!window.claude)navigator.serviceWorker.register('sw.js').catch(()=>{});
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();UI.installEvt=e;});
+window.addEventListener('appinstalled',()=>{UI.installEvt=null;toast('Maplewood is installed. Open it from your home screen.','leaf');});
 {const H=window.claude&&window.claude.hot;if(H&&H.ready)H.ready(start);else start((H&&H.data)||{});}

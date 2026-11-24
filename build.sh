@@ -28,4 +28,10 @@ if grep -q '__ML' dist/release/index.html; then echo "release build still has th
 rm -rf dist/music dist/release/music
 cp -r music dist/music
 cp -r music dist/release/music
+
+# the installable-app files (web/): manifest, icons, and the service worker, stamped so each build replaces the last
+for d in dist dist/release; do
+  rm -rf "$d/icons"; cp -r web/icons "$d/icons"; cp web/manifest.webmanifest "$d/"
+  sed "s/__BUILD__/$(date +%Y%m%d%H%M%S)/" web/sw.js > "$d/sw.js"
+done
 echo "syntax ok: dist/index.html $(wc -c < dist/index.html) bytes, dist/release/index.html $(wc -c < dist/release/index.html) bytes"
