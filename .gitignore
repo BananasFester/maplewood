@@ -1,0 +1,10 @@
+dist/
+shots/
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+# music tool working files and the soundfont (download it, see tools/music/README.md)
+tools/music/out/
+*.sf2
+*.wav
