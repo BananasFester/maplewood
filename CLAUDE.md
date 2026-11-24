@@ -1,4 +1,4 @@
-# Working on Maple Lane
+# Working on Maplewood
 
 Read README.md first for what the game is and how to run it. This file covers how the code fits
 together and the rules that keep it working.
@@ -33,7 +33,9 @@ together and the rules that keep it working.
   on load. **Don't change the order or number of RNG calls in `genTown`**, or every existing
   town changes under its saves. Add new random choices after the existing ones, or give them
   their own RNG seeded from the town or lot seed, the way `lotPlanFor` and `lotPrice` do.
-- The sample family, the Harts, always live in town seed 2611 on the `hart` lot (12 Maple Lane).
+- The sample family, the Harts, always live in town seed 2611, named Maplewood after the game,
+  on the `hart` lot at 12 Maple Lane. The game was called Maple Lane at first, so the save key
+  (`mapleLane.save.v1`) and some storage keys keep that name; don't rename them or saves are lost.
 - `lotPlanFor(l, furnished)` builds a lot's floors, walls and objects from `l.seed` and caches
   them in `TOWN.plans` under `id:f` and `id:u`.
 - Prices come from `lotPrice(l, furnished)`. A starter home costs its design's `base` plus

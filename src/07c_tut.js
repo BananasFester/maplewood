@@ -23,7 +23,7 @@ const CAREER_STEP={i:'trophy',t:'Careers and promotions',b:()=>{const w=househol
  act:['Show career',tutShowCareer],next:true,skip:()=>!household().some(p=>p.job)};
 const TOURS={
  harts:[
-  {i:'leaf',t:'Welcome to Maple Lane',b:s=>`Meet ${esc(s.first)}. The leaf floats over the person you control, and their needs fill the panel at the bottom.`,tg:{sim:1},next:true},
+  {i:'leaf',t:'Welcome to Maplewood',b:s=>`Meet ${esc(s.first)}. The leaf floats over the person you control, and their needs fill the panel at the bottom.`,tg:{sim:1},next:true},
   {i:'hunger',t:'Needs',b:'Six needs drain over time: Hunger, Energy, Bladder, Hygiene, Fun and Social. Green is good and red is urgent. Press and hold a bar to see what it means.',tg:'#sneeds',next:true,done:()=>TUT.tipped},
   {i:'sofa',t:'Give an order',b:'Tap a piece of furniture to see what it does, then pick an action. Try the TV.',tg:{obj:'tv'},done:B=>TUT.orders>B.orders,
    enter:()=>{const o=G.objects.find(o=>o.type==='tv');if(o)centerOn(o.x*T+8,o.y*T+40);}},
@@ -47,7 +47,7 @@ const TOURS={
   {i:'leaf',t:'Move in',b:'Your home has the basics. Tap the leaf to move in and start the clock.',tg:'#modes [data-m="live"]',done:()=>G.mode==='live'&&!G.fresh,skip:()=>!G.fresh},
   JOB_STEP,
   CAREER_STEP,
-  {i:'heart',t:'Enjoy Maple Lane',b:'Bills arrive at the mailbox each Monday. Wave to neighbors walking by to make friends. Press and hold anything to learn more.',next:'Start playing'}],
+  {i:'heart',t:'Enjoy your new life',b:'Bills arrive at the mailbox each Monday. Wave to neighbors walking by to make friends. Press and hold anything to learn more.',next:'Start playing'}],
  movein:[]};
 TOURS.movein=[TOURS.fresh[1],TOURS.fresh[2],TOURS.fresh[4],TOURS.fresh[5],JOB_STEP,CAREER_STEP];
 TOURS.settled=[{i:'home',t:'Welcome home',b:()=>`Your new home is furnished and ready. You have ${money(G.money)} left for upgrades.`,next:true},JOB_STEP,CAREER_STEP,TOURS.harts.find(x=>x.t==='Your town')];

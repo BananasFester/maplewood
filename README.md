@@ -1,6 +1,6 @@
-# Maple Lane
+# Maplewood
 
-A cozy life sim for phones, in the spirit of The Sims 3, with pixel art and a procedurally
+A cozy life sim for phones (first called Maple Lane), in the spirit of The Sims 3, with pixel art and a procedurally
 generated town. It runs as a single self-contained web page.
 
 <p>

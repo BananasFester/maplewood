@@ -102,6 +102,7 @@ function genTown(seed){seed=(seed>>>0)||1;const R=mulberry(seed),ri=(a,b)=>a+Mat
   T.lots.push(lot);}}
  // who lives where, and what is for sale
  const lots=shuffle(T.lots.slice());const take=f=>{const i=lots.findIndex(f);return i<0?null:lots.splice(i,1)[0];};
+ if(seed===2611)T.name='Maplewood';
  const hart=take(l=>l.street==='Maple Lane'&&l.face==='s')||take(l=>l.street==='Maple Lane')||lots.shift();hart.kind='hart';hart.tpl=null;
  NEIGHBORS.forEach((n,i)=>{const l=take(l=>!l.lake||i%2)||lots.shift();if(l){l.kind='neighbor';l.owner=i;}});
  for(let i=0;i<9;i++){const l=take(l=>i%3!==0||l.lake||l.park);if(l){l.kind='empty';l.tpl=null;}}
