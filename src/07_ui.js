@@ -34,7 +34,7 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
   $('#modes').style.bottom=(wide||(r&&innerWidth-r.right>74)?base:above)+'px';const q=$('#queue');if(wide&&G.mode==='live'){q.style.left=Math.round(r.right+10)+'px';q.style.bottom=base+'px';q.style.maxWidth=Math.max(120,innerWidth-r.right-90)+'px';}else{q.style.left='';q.style.maxWidth='';q.style.bottom=(above-4)+'px';}
   $('#skip').style.bottom=(wide?base+60:above+58)+'px';
   $('#place').style.bottom=above+'px';},
- toast(msg,icon,fn){if(G.quiet)return;const el=document.createElement('div');el.className='toast'+(fn?' tap':'');el.innerHTML=`${ico(icon||'star',20)}<span>${esc(msg)}</span>${fn?ico('map',18,'tgo'):''}`;const box=$('#toasts');box.appendChild(el);while(box.children.length>2)box.firstChild.remove();
+ toast(msg,icon,fn){if(G.quiet)return;const el=document.createElement('div');el.className='toast'+(fn?' tap':'');el.innerHTML=`${ico(icon||'star',20)}<span>${esc(say(msg))}</span>${fn?ico('map',18,'tgo'):''}`;const box=$('#toasts');box.appendChild(el);while(box.children.length>2)box.firstChild.remove();
   if(fn)el.onclick=e=>{e.stopPropagation();el.remove();sfx('click');fn();};
   setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),450);},fn?6500:3800);},
  // ---------- per-frame update ----------
@@ -206,22 +206,23 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
    if(x==='music'){G.settings.music=!G.settings.music;AU.init();AU.apply();this.menu();}if(x==='sfx'){G.settings.sfx=!G.settings.sfx;this.menu();}if(x==='nextsong'){MUS.skip();setTimeout(()=>{if(this.modalOpen())this.menu();},80);}if(x==='smooth'){G.settings.smooth=!R.smooth;applySmooth(G.settings.smooth);if(G.mode==='buy')BB.renderBuy();this.menu();}
    if(x==='save'){autosave(true);toast('Game saved','star');this.closeModal();}if(x==='help')this.help();if(x==='tour'){this.closeModal();TUT.start(G.fresh?'fresh':'harts',true);}
    if(x==='cas'){this.closeModal();this.cas('new');}if(x==='harts')this.confirm('Restart with the Harts?','This replaces your current household and house.','Restart',()=>{startSample();centerHome();autosave(true);});};},
- help(){this.modal(`<h2>How to play</h2>
-  <div class="row">${ico('leaf',24,'',{o:'#6fbd52'})}<div class="grow">Tap furniture to choose what your person does. Actions line up at the top left; tap one to cancel it.</div></div>
-  <div class="row">${ico('hammer',24)}<div class="grow">In Build mode, Room draws four walls and a floor in one drag. Add a door so people can get in.</div></div>
-  <div class="row">${ico('walk',24)}<div class="grow">Tap the floor to walk there. Drag to look around. Pinch, scroll or use the magnifier buttons to zoom.</div></div>
-  <div class="row">${ico('star',24)}<div class="grow">Press and hold any bar, button, person or object to see what it is and what it does. With a mouse, just hover.</div></div>
-  <div class="row">${ico('hunger',24)}<div class="grow">Keep the six needs up. Low needs bring bad moodlets; good moods make work and practice go better.</div></div>
-  <div class="row">${ico('people',24)}<div class="grow">Tap a neighbor walking by to introduce yourself. Friends can be invited over, romanced, and asked to move in.</div></div>
-  <div class="row">${ico('job',24)}<div class="grow">Get a job from the phone. The carpool comes 30 minutes before each shift. Build the career skill to get promoted.</div></div>
-  <div class="row">${ico('sofa',24)}<div class="grow">Buy mode places furniture; Build mode draws walls, doors, windows, floors and wallpaper. The game pauses in both.</div></div>
-  <div class="row">${ico('star',24)}<div class="grow">Wishes earn happiness points. Spend them on lifetime rewards in the Wishes tab.</div></div>
+ help(){const rows=[[ico('leaf',24,'',{o:'#6fbd52'}),'Tap furniture to choose what your person does. Actions line up at the top left; tap one to cancel it.'],
+   [ico('hammer',24),'In Build mode, Room draws four walls and a floor in one drag. Add a door so people can get in.'],
+   [ico('walk',24),'Tap the floor to walk there. Drag to look around. Pinch, scroll or use the magnifier buttons to zoom.'],
+   [ico('star',24),'Press and hold any bar, button, person or object to see what it is and what it does. With a mouse, just hover.'],
+   [ico('hunger',24),'Keep the six needs up. Low needs bring bad moodlets; good moods make work and practice go better.'],
+   [ico('people',24),'Tap a neighbor walking by to introduce yourself. Friends can be invited over, romanced, and asked to move in.'],
+   [ico('job',24),'Get a job from the phone. The carpool comes 30 minutes before each shift. Build the career skill to get promoted.'],
+   [ico('sofa',24),'Buy mode places furniture; Build mode draws walls, doors, windows, floors and wallpaper. The game pauses in both.'],
+   [ico('star',24),'Wishes earn happiness points. Spend them on lifetime rewards in the Wishes tab.']];
+  if(DESK.mouse)rows.push([ico('sun',24),'Keys: Space pauses and 1 to 3 set the speed. Arrows or WASD move the camera, and + and - zoom. In Buy mode, R turns an item and Enter places it. Esc closes menus and the town map.']);
+  this.modal(`<h2>How to play</h2>${rows.map(([i,t])=>`<div class="row">${i}<div class="grow">${esc(say(t))}</div></div>`).join('')}
   <div class="actions"><button class="btn primary" id="mx">Got it</button></div>`,()=>{});$('#mx').onclick=()=>this.closeModal();},
  offerCloud(d){this.queueModal(()=>this.modal(`<h2>Newer save found</h2><p>Your account has a saved game from ${esc(DAYS[wday(d.time)])} ${esc(clockStr(d.time))}, day ${dayOf(d.time)+1}, with ${money(d.money)}. Load it?</p><div class="actions"><button class="btn" id="mn">Keep this one</button><button class="btn primary" id="my">Load it</button></div>`,()=>{}));
   setTimeout(()=>{const y=$('#my'),n=$('#mn');if(y)y.onclick=()=>{loadGame(d);G.loadedAt=d.savedAt;centerHome();this.closeModal();toast('Loaded your saved game','star');};if(n)n.onclick=()=>this.closeModal();},80);},
  welcome(kind){const el=$('#welcome');this.welcomeOn=true;G.paused=true;
   if(kind==='continue'){const s=household()[0];el.innerHTML=`<h1 class="px">${ico('leaf',32,'',{o:'#e8662e'})}Maplewood</h1><p>Welcome back to the ${esc(s?s.last:'')} house. It's ${DAYS[wday(G.time)]}, ${clockStr(G.time)}.</p><div class="actions"><button class="btn" id="wn">New household</button><button class="btn primary" id="wp">Continue</button></div>`;}
-  else el.innerHTML=`<h1 class="px">${ico('leaf',32,'',{o:'#e8662e'})}Maplewood</h1><p>Meet Jamie and Alex Hart, just settling in on Maple Lane in the town of Maplewood this fall. Tap anything in the house to give them something to do, or start fresh with people of your own.</p><div class="actions"><button class="btn" id="wn">Create a household</button><button class="btn primary" id="wp">Play the Harts</button></div>`;
+  else el.innerHTML=`<h1 class="px">${ico('leaf',32,'',{o:'#e8662e'})}Maplewood</h1><p>${esc(say('Meet Jamie and Alex Hart, just settling in on Maple Lane in the town of Maplewood this fall. Tap anything in the house to give them something to do, or start fresh with people of your own.'))}</p><div class="actions"><button class="btn" id="wn">Create a household</button><button class="btn primary" id="wp">Play the Harts</button></div>`;
   el.classList.remove('hidden');$('#sheet').classList.add('hidden');document.body.classList.add('wel');
   $('#wp').onclick=()=>{AU.init();sfx('good');this.hideWelcome();if(kind!=='continue')TUT.start('harts');};$('#wn').onclick=()=>{AU.init();this.hideWelcome();this.cas('new');};},
  hideWelcome(){this.welcomeOn=false;G.paused=false;document.body.classList.remove('wel');$('#welcome').classList.add('hidden');if(G.mode==='live')$('#sheet').classList.remove('hidden');this.dirty=true;this.layout();

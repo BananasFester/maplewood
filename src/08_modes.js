@@ -3,7 +3,7 @@ const BB={cat:'seating',placing:null,tool:'room',drag:null,floor:'wood',wp:'crea
  thumb(c){const S=Math.round(64*Math.min(3,Math.max(1,window.devicePixelRatio||1)));const[t,g]=mkc(S,S);const f=Math.max(1,Math.floor(Math.min(S/c.width,S/c.height)));const w=c.width*f,h=c.height*f;
   if(R.smooth){const sc=smoothSpr(c,f>=6?8:4);g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(sc,0,0,sc.width,sc.height,(S-w)/2|0,(S-h)/2|0,w,h);}else g.drawImage(c,0,0,c.width,c.height,(S-w)/2|0,(S-h)/2|0,w,h);return t;},
  renderBuy(){const el=$('#buy');const cats=CATS.concat(G.inv.length?[['inv','Inventory']]:[]);if(!cats.some(c=>c[0]===this.cat))this.cat='seating';
-  let h=`<div class="tabsx">${cats.map(([k,l])=>`<button data-c="${k}" class="${k===this.cat?'on':''}">${l}</button>`).join('')}</div><div class="items" id="bitems"></div><p class="hint">Tap an item, then tap where it goes. Tap something in the house to move or sell it.</p>`;
+  let h=`<div class="tabsx">${cats.map(([k,l])=>`<button data-c="${k}" class="${k===this.cat?'on':''}">${l}</button>`).join('')}</div><div class="items" id="bitems"></div>${sayHint('Tap an item, then tap where it goes. Tap something in the house to move or sell it.')}`;
   el.innerHTML=h;const box=$('#bitems');
   if(this.cat==='inv'){for(const it of G.inv){const d=document.createElement('button');d.className='item';const[c,g]=mkc(14,12);drawWallDecor(g,{type:'painting',state:{art:it.art}},0,0);d.appendChild(this.thumb(c));d.insertAdjacentHTML('beforeend',`<b>${esc(it.title)}</b><span>Worth ${money(it.value)}</span>`);d.onclick=()=>{sfx('click');this.startPlace('painting',{inv:it});};box.appendChild(d);}}
   else for(const[k,d]of Object.entries(CATALOG)){if(d.c!==this.cat)continue;const b=document.createElement('button');b.className='item'+(this.placing&&this.placing.type===k&&!this.placing.moving?' sel':'');b.appendChild(this.thumb(catalogThumb(k,0)));
@@ -41,7 +41,7 @@ const BB={cat:'seating',placing:null,tool:'room',drag:null,floor:'wood',wp:'crea
   const hint={room:'Drag a box to build a room: walls around the edge, the floor below inside. Use two fingers to move the camera.',wall:'Drag a line to build walls. Use two fingers to move the camera.',door:'Tap a straight wall to add a door.',window:'Tap a straight wall to add a window.',floor:'Drag a box to lay flooring. Use two fingers to move the camera.',paper:'Tap the floor inside a room to paper its back walls.',remove:'Drag across walls, doors or windows to remove them.'}[this.tool];
   if(this.tool==='floor'||this.tool==='room')h+=`<div class="tabsx" style="margin-top:6px" id="sws">${Object.entries(FLOORS).filter(([k,f])=>f.l&&!(this.tool==='room'&&f.out)).map(([k,f])=>`<button data-f="${k}" data-tip="floor:${k}" class="${this.floor===k?'on':''}" aria-label="${f.l}"><canvas width="16" height="16" data-fl="${k}" style="width:24px;height:24px;image-rendering:pixelated"></canvas>${f.l} ${money(f.p)}</button>`).join('')}</div>`;
   if(this.tool==='paper')h+=`<div class="tabsx" style="margin-top:6px">${Object.entries(WALLPAPERS).map(([k,w])=>`<button data-w="${k}" data-tip="paper:${k}" class="${this.wp===k?'on':''}"><canvas width="16" height="16" data-wpp="${k}" style="width:24px;height:24px;image-rendering:pixelated"></canvas>${w.l}</button>`).join('')}</div>`;
-  h+=`<p class="hint">${hint}</p>`;el.innerHTML=h;
+  h+=sayHint(hint);el.innerHTML=h;
   el.querySelectorAll('canvas[data-fl]').forEach(c=>tileFloor(c.getContext('2d'),c.dataset.fl,0,0));el.querySelectorAll('canvas[data-wpp]').forEach(c=>wallpaper(c.getContext('2d'),c.dataset.wpp,0,0,0,16,16));
   el.onclick=e=>{const b=e.target.closest('button');if(!b)return;sfx('click');if(b.dataset.t)this.tool=b.dataset.t;if(b.dataset.f)this.floor=b.dataset.f;if(b.dataset.w)this.wp=b.dataset.w;this.renderBuild();};UI.layout();},
  lineTiles(a,b){const L=[];const dx=b[0]-a[0],dy=b[1]-a[1];if(Math.abs(dx)>=Math.abs(dy)){const s=Math.sign(dx)||1;for(let x=a[0];x!==b[0]+s;x+=s)L.push([x,a[1]]);}else{const s=Math.sign(dy);for(let y=a[1];y!==b[1]+s;y+=s)L.push([a[0],y]);}return L;},
@@ -83,7 +83,9 @@ const BB={cat:'seating',placing:null,tool:'room',drag:null,floor:'wood',wp:'crea
    if(d.acts&&!d.wall&&!d.rug){b.fillStyle='rgba(255,255,255,.35)';for(let i=0;i<d.w;i++)b.fillRect((p.x+i)*T+5,(p.y+d.h)*T+5,6,6);}}
   if(this.prevIn){b.fillStyle='rgba(255,230,150,.38)';for(const[x,y]of this.prevIn)if(inLot(x,y))b.fillRect(x*T,y*T,T,T);}
   if(this.prev&&this.tool==='room'){for(const[x,y]of this.prev){b.fillStyle=this.prevCross||this.roomBlocked(x,y)?'rgba(230,70,60,.6)':'rgba(90,70,85,.6)';if(inMap(x,y))b.fillRect(x*T,y*T,T,T);}}
-  else if(this.prev){const t=this.tool;b.fillStyle=t==='remove'?'rgba(230,70,60,.45)':t==='floor'?'rgba(255,230,150,.35)':t==='wall'?'rgba(90,70,85,.55)':'rgba(120,180,255,.45)';for(const[x,y]of this.prev)if(inLot(x,y))b.fillRect(x*T,y*T,T,T);}}
+  else if(this.prev){const t=this.tool;b.fillStyle=t==='remove'?'rgba(230,70,60,.45)':t==='floor'?'rgba(255,230,150,.35)':t==='wall'?'rgba(90,70,85,.55)':'rgba(120,180,255,.45)';for(const[x,y]of this.prev)if(inLot(x,y))b.fillRect(x*T,y*T,T,T);}
+  // mouse hover in build mode: mark the tile a click or drag would start on
+  else if(G.mode==='build'&&this.hov&&inLot(this.hov[0],this.hov[1])){const[x,y]=this.hov;b.fillStyle='rgba(255,255,255,.22)';b.fillRect(x*T,y*T,T,T);b.fillStyle='rgba(255,255,255,.7)';b.fillRect(x*T,y*T,T,1);b.fillRect(x*T,y*T+T-1,T,1);b.fillRect(x*T,y*T,1,T);b.fillRect(x*T+T-1,y*T,1,T);}}
 };
 
 // ---------- input ----------
@@ -108,36 +110,59 @@ function tap(cx,cy){
  const o=hitObject(w.x,w.y,false);if(o){UI.objMenu(o,cx,cy);return;}
  const sel=selSim();if(sel&&!sel.away&&sel.onLot&&freeTile(tx,ty)){enqueue(sel,A('goto','Go Here','walk',[{k:'walk',x:tx,y:ty}]));R.marker={x:tx,y:ty,until:R.t+1.4};sfx('pop');}
 }
+// right-click without dragging: cancel placing, close a menu, or act like a tap (menus, walk here)
+function rightClick(cx,cy){if(UI.modalOpen()||UI.welcomeOn)return;if(!$('#ctx').classList.contains('hidden')){UI.ctxClose();return;}
+ if(G.mode==='buy'&&BB.placing){BB.cancel();sfx('click');return;}if(G.mode==='build')return;tap(cx,cy);}
 function initInput(){const c=R.cv;
- c.addEventListener('pointerdown',e=>{try{c.setPointerCapture(e.pointerId);}catch(_){}AU.init();IN.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ c.addEventListener('pointerdown',e=>{
+  // mouse: the right or middle button moves the camera in every mode, so the left button stays free for tools
+  if(e.pointerType==='mouse'&&e.button!==0){if(e.button===1||e.button===2){try{c.setPointerCapture(e.pointerId);}catch(_){}AU.init();clearTimeout(IN.lp);R.zt=null;DESK.leave();IN.rp={x:e.clientX,y:e.clientY,cx:R.camX,cy:R.camY,moved:false,b:e.button};e.preventDefault();}return;}
+  try{c.setPointerCapture(e.pointerId);}catch(_){}AU.init();IN.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   clearTimeout(IN.lp);if(IN.ptrs.size===1){IN.sx=e.clientX;IN.sy=e.clientY;IN.downAt=performance.now();IN.pan=false;IN.cx=R.camX;IN.cy=R.camY;IN.mode=null;R.zt=null;
    const w=screenToWorld(e.clientX,e.clientY),tx=Math.floor(w.x/T),ty=Math.floor(w.y/T);
    if(G.mode==='build'&&!UI.modalOpen()){IN.mode='tool';BB.down(tx,ty);}else if(G.mode==='buy'&&BB.placing&&BB.onGhost(tx,ty))IN.mode='ghost';
    else if(!UI.modalOpen()&&!UI.welcomeOn&&!(G.mode==='buy'&&BB.placing)){const px=e.clientX,py=e.clientY;IN.lp=setTimeout(()=>{if(IN.ptrs.size!==1||IN.pan||IN.mode)return;const w2=screenToWorld(px,py),d=worldTip(w2.x,w2.y);if(d&&TIP.showAt(d,px,py)){IN.mode='tip';UI.ctxClose();try{navigator.vibrate&&navigator.vibrate(8);}catch(_){}}},450);}}
   else if(IN.ptrs.size===2){const[a,b]=[...IN.ptrs.values()];if(IN.mode==='tool')BB.cancelDrag();if(IN.mode==='tip')TIP.hide();IN.mode='pinch';IN.pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:R.Z,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};}});
- c.addEventListener('pointermove',e=>{if(!IN.ptrs.has(e.pointerId))return;IN.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ c.addEventListener('pointermove',e=>{
+  if(IN.rp&&e.pointerType==='mouse'){const r=IN.rp,dx=e.clientX-r.x,dy=e.clientY-r.y;if(!r.moved&&Math.hypot(dx,dy)>4){r.moved=true;c.style.cursor='grabbing';UI.ctxClose();}
+   if(r.moved){R.camX=r.cx-dx*R.dpr/R.Z;R.camY=r.cy-dy*R.dpr/R.Z;clampCam();}return;}
+  if(e.pointerType==='mouse'&&!IN.ptrs.size){DESK.hover(e);return;}
+  if(!IN.ptrs.has(e.pointerId))return;IN.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(IN.mode==='pinch'&&IN.ptrs.size>=2){const[a,b]=[...IN.ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;R.camX-=(mx-IN.pinch.mx)*R.dpr/R.Z;R.camY-=(my-IN.pinch.my)*R.dpr/R.Z;IN.pinch.mx=mx;IN.pinch.my=my;
    const zw=IN.pinch.z*d/IN.pinch.d;if(zw<R.Zmin*.72&&G.mode==='live'&&G.started&&!UI.welcomeOn){IN.ptrs.clear();IN.mode=null;IN.pinch=null;TV.open('browse');return;}setZoom(zw,mx*R.dpr,my*R.dpr);clampCam();return;}
   if(IN.ptrs.size!==1)return;const w=screenToWorld(e.clientX,e.clientY),tx=Math.floor(w.x/T),ty=Math.floor(w.y/T);
   if(IN.mode==='tool'){BB.move(tx,ty);return;}if(IN.mode==='ghost'){BB.ghostTo(tx,ty);return;}if(IN.mode==='tip')return;
   const dx=e.clientX-IN.sx,dy=e.clientY-IN.sy;if(!IN.pan&&Math.hypot(dx,dy)>8){IN.pan=true;clearTimeout(IN.lp);UI.ctxClose();}
   if(IN.pan){R.camX=IN.cx-dx*R.dpr/R.Z;R.camY=IN.cy-dy*R.dpr/R.Z;clampCam();}});
- const up=e=>{if(!IN.ptrs.has(e.pointerId))return;IN.ptrs.delete(e.pointerId);clearTimeout(IN.lp);
+ const up=e=>{
+  if(IN.rp&&e.pointerType==='mouse'){const r=IN.rp;IN.rp=null;c.style.cursor='';if(!r.moved&&r.b===2&&e.type==='pointerup')rightClick(e.clientX,e.clientY);return;}
+  if(!IN.ptrs.has(e.pointerId))return;IN.ptrs.delete(e.pointerId);clearTimeout(IN.lp);
   if(IN.mode==='pinch'){if(IN.ptrs.size===0)IN.mode=null;else{const p=[...IN.ptrs.values()][0];IN.sx=p.x;IN.sy=p.y;IN.cx=R.camX;IN.cy=R.camY;IN.pan=true;IN.mode='after';}return;}
   if(IN.ptrs.size>0)return;
-  if(IN.mode==='tool'){BB.up();IN.mode=null;return;}if(IN.mode==='ghost'||IN.mode==='tip'){IN.mode=null;IN.pan=false;return;}
+  if(IN.mode==='tool'){BB.up();IN.mode=null;return;}
+  // with a mouse the ghost already follows the pointer, so a click (not a drag) places it
+  if(IN.mode==='ghost'&&e.pointerType==='mouse'&&e.type==='pointerup'&&Math.hypot(e.clientX-IN.sx,e.clientY-IN.sy)<6&&performance.now()-IN.downAt<650){IN.mode=null;IN.pan=false;BB.confirm();return;}
+  if(IN.mode==='ghost'||IN.mode==='tip'){IN.mode=null;IN.pan=false;return;}
   if(IN.mode!=='after'&&!IN.pan&&performance.now()-IN.downAt<650&&e.type==='pointerup')tap(e.clientX,e.clientY);IN.pan=false;IN.mode=null;};
- c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+ c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);c.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!IN.ptrs.size&&!IN.rp)DESK.leave();});
  c.addEventListener('wheel',e=>{e.preventDefault();const x=e.clientX*R.dpr,y=e.clientY*R.dpr,d=e.deltaY*(e.deltaMode===1?33:e.deltaMode===2?400:1);
   if(d>0&&R.Z<=R.Zmin*1.002&&G.mode==='live'&&G.started&&!UI.welcomeOn){IN.wout=(IN.wout||0)+d;if(IN.wout>260){IN.wout=0;TV.open('browse');}return;}IN.wout=0;
   if(R.smooth)zoomTo((R.zt!=null?R.zt:R.Z)*Math.exp(-clamp(d,-240,240)*(e.ctrlKey?.012:.0024)),x,y);else{IN.wacc=(IN.wacc||0)+d;if(Math.abs(IN.wacc)>=40){zoomStep(IN.wacc<0?1:-1,x,y);IN.wacc=0;}}},{passive:false});
  c.addEventListener('contextmenu',e=>e.preventDefault());
  document.addEventListener('gesturestart',e=>e.preventDefault());
- window.addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key;
+ // keyboard: Space pauses, 0-3 set the speed, arrows or WASD move the camera (held, in DESK.frame), + and - zoom,
+ // Esc backs out of menus, placing and the town map, R turns and Enter places the item being placed
+ window.addEventListener('keydown',e=>{const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key.length===1?e.key.toLowerCase():e.key,busy=UI.modalOpen()||UI.welcomeOn||!$('#cas').classList.contains('hidden');
+  if(DESK.PAN[k]){if(!busy){DESK.keys.add(k);e.preventDefault();}return;}
   if(k===' '){G.speed=G.speed?0:1;UI.dirty=true;e.preventDefault();}else if(k>='0'&&k<='3'){G.speed=+k;UI.dirty=true;}
-  else if(k==='Escape'){UI.ctxClose();if(BB.placing)BB.cancel();if(UI.modalOpen()&&$('#cas').classList.contains('hidden')&&UI.mCancel){const f=UI.mCancel;UI.closeModal();f();}}
-  else if(k==='+'||k==='=')zoomStep(1);else if(k==='-'||k==='_')zoomStep(-1);
-  else if(k.startsWith('Arrow')){const s=24;if(k==='ArrowLeft')R.camX-=s;if(k==='ArrowRight')R.camX+=s;if(k==='ArrowUp')R.camY-=s;if(k==='ArrowDown')R.camY+=s;clampCam();e.preventDefault();}});
+  else if(k==='Escape'){if(TIP.open())TIP.hide();if(!$('#ctx').classList.contains('hidden')){UI.ctxClose();return;}if(BB.placing){BB.cancel();return;}
+   if(UI.modalOpen()){if($('#cas').classList.contains('hidden')&&UI.mCancel){const f=UI.mCancel;UI.closeModal();f();}return;}
+   if(TV.on&&!busy){if(TV.sel)TV.select(null);else if(TV.mode==='pick')TV.cancelPick();else TV.close();sfx('click');}}
+  else if(k==='+'||k==='='){if(TV.on)TV.zoomStep(1);else zoomStep(1);}else if(k==='-'||k==='_'){if(TV.on)TV.zoomStep(-1);else zoomStep(-1);}
+  else if(k==='r'&&BB.placing&&!busy){const p=BB.placing;if(CATALOG[p.type].rot){p.rot=p.rot?0:1;BB.renderPlaceBar();sfx('click');}}
+  else if(k==='Enter'&&BB.placing&&!busy){BB.confirm();e.preventDefault();}});
+ window.addEventListener('keyup',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;DESK.keys.delete(k);});
 }
 
 // ---------- audio: small synth for UI sounds; music is a playlist of recorded tracks (MUS) ----------

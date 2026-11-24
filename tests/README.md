@@ -38,6 +38,7 @@ Most checks are printed values rather than asserts, so skim the output for anyth
 | `music_daynight.py` | Music player and day/night changes |
 | `touch_longpress.py` | Press-and-hold tooltips and tap menus |
 | `pinch_zoom.py` | Pinch zoom on the lot |
+| `desktop_mouse.py` | Mouse and keyboard at 1366x768: hover tips, right-drag camera, click to place, strip scrolling, keys |
 | `zoom_smoothing.py` | Zoom buttons and the WebGL smoothing pass |
 
 Touch gestures that Playwright's `tap()` can't express (drags, pinches) are sent with

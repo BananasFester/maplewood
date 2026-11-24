@@ -183,6 +183,13 @@ body.smooth .item canvas{image-rendering:auto}
 .item span{font-size:13px;color:#3f8a35;font-weight:900}
 .item.sel{border-color:var(--acc);box-shadow:0 0 0 3px rgba(232,102,46,.35)}
 .hint{font-size:13px;color:var(--ink2);margin:4px 2px 0}
+/* mouse and keyboard on a PC (body.mouse is set by DESK): visible strip scrollbars, hover states, wider panels */
+body.mouse .tabsx,body.mouse .items{scrollbar-width:thin;scrollbar-color:rgba(51,35,46,.3) transparent}
+body.mouse .tabsx::-webkit-scrollbar,body.mouse .items::-webkit-scrollbar{display:block;height:6px}
+body.mouse .tabsx::-webkit-scrollbar-thumb,body.mouse .items::-webkit-scrollbar-thumb{background:rgba(51,35,46,.3);border-radius:3px}
+body.mouse .tabsx button:not(.on):hover,body.mouse .item:hover{border-color:var(--acc)}
+body.mouse .btn:not(:disabled):hover,body.mouse .pill button:hover{filter:brightness(1.06)}
+@media(min-width:1000px) and (min-height:600px){#buy,#build{max-width:min(900px,calc(100vw - 110px))}}
 .sw{width:40px;height:40px;border-radius:10px;border:2px solid var(--edge);flex:none}
 .sw.on{outline:3px solid var(--acc);outline-offset:2px}
 #place{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:4;pointer-events:none}

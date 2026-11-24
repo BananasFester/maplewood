@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 
 PARTS="src/00_head.html src/01_core.js src/02_art.js src/03_world.js src/03b_town.js src/04_sim.js src/05_game.js
 src/06_render.js src/06b_gl.js src/07_ui.js src/07b_tips.js src/07c_tut.js src/07d_town.js src/08_modes.js
-src/09_main.js src/99_tail.html"
+src/08b_desktop.js src/09_main.js src/99_tail.html"
 
 mkdir -p dist/release
 cat $PARTS > dist/index.html

@@ -49,7 +49,12 @@ together and the rules that keep it working.
 ## Conventions
 
 - Phone first. Check changes at 390x844 portrait with touch, then landscape (844x390) and a
-  tablet (820x1180).
+  tablet (820x1180). It also has to work with a mouse and keyboard on a PC (`DESK` in
+  `08b_desktop.js`, checked by `tests/desktop_mouse.py`): right or middle drag moves the camera,
+  so the left button stays free for tools.
+- Player text is written for touch ("tap", "press and hold"). Pass it through `say()` where it
+  is shown (toasts, tooltips, tour and hints already do; use `sayHint()` for a `.hint`) so mouse
+  players read "click" and "hover". New touch-only phrases go in `SAY_MOUSE`.
 - Every control and object gets a press-and-hold tooltip: `data-tip` keys, with the text in
   `07b_tips.js`.
 - Player-facing text is short, warm and plain. Don't use em dashes in it.
@@ -67,6 +72,8 @@ together and the rules that keep it working.
 ## Publishing
 
 - `dist/release/index.html` plus `music/` is the whole game, so any static host works.
+- GitHub Pages: `.github/workflows/pages.yml` runs `build.sh` on each push to `main` and
+  publishes `dist/release`.
 - It started in the Claude app and is published there as a claude.ai artifact. The artifact
   runtime adds `window.claude` (cloud saves, hot reload). The game checks for it and runs fine
   without it.

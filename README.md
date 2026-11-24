@@ -24,6 +24,9 @@ generated town. It runs as a single self-contained web page.
   farmers market and a park picnic.
 - **Made for touch.** Press and hold anything for a tooltip, pinch to zoom, guided tours for the
   sample family (the Harts) and for new households.
+- **Plays on a PC too.** Hover for tooltips, right-drag to move the camera, scroll to zoom, click to
+  place furniture. Keys: Space pauses, 1 to 3 set the speed, arrows or WASD move the camera, + and -
+  zoom, R turns an item, Esc backs out.
 - **Original music.** Five songs composed in code, with day, night and build playlists.
 
 ## Run it
@@ -46,6 +49,9 @@ tablet sizes work too.
   It is static, so any static host works (GitHub Pages, Netlify). It's also published as a
   [claude.ai artifact](https://claude.ai/artifact/HaxB9ykWVRW4eo4vyF4YmC).
 
+`.github/workflows/pages.yml` builds and publishes the release build to GitHub Pages on every
+push to `main`. To turn it on, set the repo's Settings > Pages > Source to "GitHub Actions".
+
 ## Project layout
 
 ```
@@ -64,6 +70,7 @@ src/            the game, concatenated in order into one page by build.sh
   07c_tut.js      guided tours and the home checklist
   07d_town.js     town map view, outings, moving house
   08_modes.js     buy and build tools, touch input, music player, sound effects
+  08b_desktop.js  mouse and keyboard: hover, right-drag camera, strip scrolling, mouse wording
   09_main.js      start-up, frame loop, debug hook
   99_tail.html    closing tags
 music/          the soundtrack (MP3)

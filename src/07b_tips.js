@@ -102,10 +102,10 @@ const TIP={el:null,tgt:null,mode:null,timer:0,hideT:0,hovT:0,hov:null,press:null
   document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const t=tipEl(e);if(t===this.hov)return;this.hov=t;clearTimeout(this.hovT);if(t!==this.hovBlock)this.hovBlock=null;
    if(!t){if(this.mode==='hover')this.hide();return;}if(t===this.hovBlock)return;this.hovT=setTimeout(()=>{if(this.hov===t&&this.mode!=='press')this.show(t,'hover');},500);},true);
   document.addEventListener('scroll',()=>this.hide(),true);},
- html(d){return`<div class="tt">${d.i?ico(d.i,22):''}<span>${esc(d.t)}</span></div>${d.s?`<div class="ts">${esc(d.s)}</div>`:''}${d.b?`<p>${esc(d.b)}</p>`:''}${d.u&&d.u.length?`<div class="tu">${d.u.map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>`:''}${d.x?`<div class="tx">${esc(d.x)}</div>`:''}`;},
+ html(d){return`<div class="tt">${d.i?ico(d.i,22):''}<span>${esc(d.t)}</span></div>${d.s?`<div class="ts">${esc(say(d.s))}</div>`:''}${d.b?`<p>${esc(say(d.b))}</p>`:''}${d.u&&d.u.length?`<div class="tu">${d.u.map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>`:''}${d.x?`<div class="tx">${esc(d.x)}</div>`:''}`;},
  show(t,mode){const d=tipData(t.dataset.tip);if(!d)return false;this.tgt=t;TUT.tipped=true;const r=t.getBoundingClientRect();this.place(d,r.left+r.width/2,r.top,r.bottom,mode);return true;},
- // world tooltip at a screen point (finger covers the point, so prefer above it)
- showAt(d,x,y){if(!d)return false;this.tgt='world';TUT.tipped=true;this.place(d,x,y-36,y+30,'press');clearTimeout(this.hideT);this.hideT=setTimeout(()=>this.hide(),4500);return true;},
+ // world tooltip at a screen point (finger covers the point, so prefer above it); mode 'hover' stays until the mouse moves
+ showAt(d,x,y,mode){if(!d)return false;this.tgt='world';TUT.tipped=true;this.place(d,x,y-36,y+30,mode||'press');clearTimeout(this.hideT);if(mode!=='hover')this.hideT=setTimeout(()=>this.hide(),4500);return true;},
  place(d,cx,top,bottom,mode){const el=this.el;el.innerHTML=this.html(d);el.classList.remove('hidden');el.style.left='0px';el.style.top='0px';this.mode=mode;clearTimeout(this.hideT);
   const w=el.offsetWidth,h=el.offsetHeight,W2=innerWidth,H2=innerHeight,m=8;let y=top-h-10;if(y<m+40)y=Math.min(H2-h-m,bottom+10);
   el.style.left=Math.round(clamp(cx-w/2,m,W2-w-m))+'px';el.style.top=Math.round(Math.max(m,y))+'px';},

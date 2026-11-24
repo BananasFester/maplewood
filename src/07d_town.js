@@ -129,7 +129,7 @@ const TV={on:false,mode:'browse',cv:null,g:null,W:0,H:0,dpr:1,cam:{x:0,y:0,z:1},
  panel(){const el=this.card,o=this.sel,s=selSim();let h='';
   if(!o){const ev=nextEvents(3),pick=this.mode==='pick',em=pick?this.saleList(null,'empty'):[],sh=pick?this.saleList(null,'starter'):[],lo=a=>a.length?money(Math.min(...a.map(x=>x.priceU||x.price))):'';
    h=`<div class="tt"><b>${esc(TOWN.name)}</b><span class="small">${pick?`${esc(this.defs?this.defs[0].last:'New')} household · ${money(START_FUNDS)} to spend`:'Your town'}</span></div>
-    <p class="small tp">${pick?'Where will you live? Pick one to browse, or tap a dot on the map.':'Tap a place to visit it, a neighbor\'s home to drop by, or a For Sale sign to move.'}</p>
+    <p class="small tp">${esc(say(pick?'Where will you live? Pick one to browse, or tap a dot on the map.':'Tap a place to visit it, a neighbor\'s home to drop by, or a For Sale sign to move.'))}</p>
     ${pick?`<div class="cats"><button class="catb" data-cat="empty"><i class="dot w"></i><span><b>Empty lot</b><span class="small">No house. Build your own. ${em.length} from ${lo(em)}</span></span></button><button class="catb" data-cat="starter"><i class="dot o"></i><span><b>Starter home</b><span class="small">Furnished or unfurnished. ${sh.length} from ${lo(sh)}</span></span></button></div>`:''}
     <div class="tev">${ev.map(x=>`<button class="chip" data-ev="${x.e.poi}">${x.live?'<i class="live"></i>':''}${esc(x.today?'Today':DAYS[wday(x.day*1440)])} ${hr12(x.e.from)} · ${esc(x.e.l)}</button>`).join('')}</div>
     ${this.mode==='pick'?'<div class="actions" style="margin-top:8px"><button class="btn sm" data-x="reroll">Show me a different town</button></div>':''}`;}

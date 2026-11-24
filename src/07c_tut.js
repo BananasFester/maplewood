@@ -73,7 +73,7 @@ const TUT={el:null,ring:null,orders:0,tipped:false,base:{},acc:0,sig:'',
  chkHTML(){return`<div class="chk">${homeChecks().map(c=>`<button data-go="${c.go}" class="${c.ok?'ok':''}" ${c.ok?'disabled':''}><span>${c.ok?'✓':'+'}</span>${esc(c.l)}</button>`).join('')}</div>`;},
  render(){const st=this.cur();if(!st){this.hide();return;}const s=selSim()||household()[0];if(!s)return;const L=this.list();
   const body=typeof st.b==='function'?st.b(s):st.b,title=typeof st.t==='function'?st.t(s):st.t,nx=st.next===true?'Next':st.next;
-  this.el.classList.toggle('min',!!this.min);this.el.innerHTML=`<div class="th" data-tut="${this.min?'max':''}">${ico(st.i||'star',22)}<b>${esc(title)}</b><span class="tn">${G.tut.i+1} of ${L.length}</span><button class="tmin" data-tut="${this.min?'max':'min'}" aria-label="${this.min?'Show tip':'Hide tip'}">${this.min?'+':'–'}</button></div><p class="tb">${body}</p>${st.chk?this.chkHTML():''}
+  this.el.classList.toggle('min',!!this.min);this.el.innerHTML=`<div class="th" data-tut="${this.min?'max':''}">${ico(st.i||'star',22)}<b>${esc(title)}</b><span class="tn">${G.tut.i+1} of ${L.length}</span><button class="tmin" data-tut="${this.min?'max':'min'}" aria-label="${this.min?'Show tip':'Hide tip'}">${this.min?'+':'–'}</button></div><p class="tb">${say(body)}</p>${st.chk?this.chkHTML():''}
    <div class="ta"><button class="lnk" data-tut="skip">Skip tour</button><span class="grow"></span>${st.act?`<button class="btn sm" data-tut="act">${esc(st.act[0])}</button>`:''}${nx?`<button class="btn sm primary" data-tut="next">${esc(nx)}</button>`:''}</div>`;
   this.el.classList.remove('hidden');this.place();this.frame(0);},
  // card sits above the bottom panel on phones in portrait, and top centre on wide or short screens

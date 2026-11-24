@@ -4,10 +4,10 @@ function step(dt){if(!G.started)return;if(G.paused||UI.modalOpen()||G.mode!=='li
  const rate=G.skip?45:SPEEDS[G.speed];let dm=dt*rate;while(dm>1e-6){const s=Math.min(dm,.5);gameStep(s);dm-=s;}
  if(G.skip){const hh=household().filter(p=>p.onLot&&!p.away);const still=hh.length?hh.every(p=>p.act&&p.act.sleeping):household().every(p=>p.away);if(!still)G.skip=false;}}
 function frame(t){const dt=lastT?Math.min(.1,(t-lastT)/1000):.016;lastT=t;
- try{step(dt);if(TV.on)TV.render(dt);else render(dt);UI.update(dt);TUT.frame(dt);}catch(e){errCount++;console.error(e);if(errCount===1)toast('Something hiccuped. The game keeps going.','frown');}
+ try{step(dt);DESK.frame(dt);if(TV.on)TV.render(dt);else render(dt);UI.update(dt);TUT.frame(dt);}catch(e){errCount++;console.error(e);if(errCount===1)toast('Something hiccuped. The game keeps going.','frown');}
  requestAnimationFrame(frame);}
 function start(hot){
- hot=hot||{};initRender();UI.init();TIP.init();TUT.init();TV.init();initInput();
+ hot=hot||{};initRender();DESK.init();UI.init();TIP.init();TUT.init();TV.init();initInput();
  let d=hot.save||null;if(!d)d=loadLocal();let ok=false;
  if(d){try{loadGame(d);G.loadedAt=d.savedAt||0;ok=true;}catch(e){console.error('load failed',e);}}
  if(!ok)startSample();
