@@ -37,7 +37,9 @@ together and the rules that keep it working.
   start menu is only the unplayed sample.
 - Tours (`07c_tut.js`): in Buy and Build mode the card sits at the top, out of the way of the house
   and the shop, and steps aside while an item is being placed or a room dragged. Keep tour text
-  short; on a phone every line covers the lot.
+  short; on a phone every line covers the lot. On phones and short screens the Buy and Build
+  panels step away too while placing or dragging (`BB.syncPanel`, class `away`), and use a
+  compact layout.
 - People have a body type, `app.body` ('f' or 'm'). Older saves and generated townsfolk have
   none, so always read it through `bodyOf(app)`.
 - Walls up (`R.wallsUp`, saved in `G.settings`) raises every wall and draws a roof per building

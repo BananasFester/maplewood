@@ -84,7 +84,7 @@ const TUT={el:null,ring:null,orders:0,tipped:false,base:{},acc:0,sig:'',
   el.style.transform='';el.style.left='';el.style.right='';el.style.top='';el.style.bottom='';el.style.width='';el.style.maxHeight='';
   const shop=G.mode==='buy'||G.mode==='build';el.classList.toggle('shop',shop);
   el.classList.toggle('aside',shop&&!!(BB.placing||BB.drag));this.ring.classList.toggle('aside',shop&&!!(BB.placing||BB.drag));
-  if(shop){const rs=s=>{const e=$(s);return e&&!e.classList.contains('hidden')?e.getBoundingClientRect():null;};
+  if(shop){const rs=s=>{const e=$(s);return e&&!e.classList.contains('hidden')&&!e.classList.contains('away')?e.getBoundingClientRect():null;};
    const L=['#clock','#speed'].map(rs).filter(Boolean),Rt=['#moneyPill','#menuBtn','#zoom'].map(rs).filter(Boolean);
    const lx=Math.max(8,...L.map(r=>r.right))+8,rx=Math.min(innerWidth-8,...Rt.map(r=>r.left))-8,hb=Math.max(0,...L.concat(Rt).map(r=>r.bottom));
    const panel=rs(G.mode==='buy'?'#buy':'#build'),floor=panel?panel.top-8:innerHeight-8;

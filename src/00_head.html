@@ -199,6 +199,13 @@ body.mouse .tabsx::-webkit-scrollbar,body.mouse .items::-webkit-scrollbar{displa
 body.mouse .tabsx::-webkit-scrollbar-thumb,body.mouse .items::-webkit-scrollbar-thumb{background:rgba(51,35,46,.3);border-radius:3px}
 body.mouse .tabsx button:not(.on):hover,body.mouse .item:hover{border-color:var(--acc)}
 body.mouse .btn:not(:disabled):hover,body.mouse .pill button:hover{filter:brightness(1.06)}
+#buy.away,#build.away{display:none}
+@media(max-width:560px),(max-height:560px){#buy,#build{padding:8px}
+ #buy .tabsx button,#build .tabsx button{min-height:34px;padding:3px 10px;font-size:13px}
+ #buy .items{gap:6px;padding:6px 2px 2px}#buy .item{width:86px;padding:4px 4px 5px;border-radius:12px;gap:1px}#buy .item canvas{width:44px;height:44px}
+ #buy .item b{font-size:12px;min-height:28px;line-height:1.15}#buy .item span{font-size:12px}
+ #buy .hint{display:none}#build .hint{font-size:12px;line-height:1.25}#build .exrow~.hint{display:none}
+ .exrow{margin-top:3px}.exrow .tabsx button{min-height:32px;padding:2px 8px}.exrow .exl{width:64px;font-size:12px}}
 @media(min-width:1000px) and (min-height:600px){#buy,#build{max-width:min(900px,calc(100vw - 110px))}}
 .sw{width:40px;height:40px;border-radius:10px;border:2px solid var(--edge);flex:none}
 .sw.on{outline:3px solid var(--acc);outline-offset:2px}

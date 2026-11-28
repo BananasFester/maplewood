@@ -30,7 +30,7 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
   this.buildSheet();this.layout();
   $('#modal').addEventListener('pointerdown',e=>{if(e.target.id==='modal'&&this.mCancel){const f=this.mCancel;this.closeModal();f();}});
  },
- layout(){const sh=G.mode==='live'?$('#sheet'):G.mode==='buy'?$('#buy'):$('#build');const vis=sh&&!sh.classList.contains('hidden');const r=vis?sh.getBoundingClientRect():null;
+ layout(){const sh=G.mode==='live'?$('#sheet'):G.mode==='buy'?$('#buy'):$('#build');const vis=sh&&!sh.classList.contains('hidden')&&!sh.classList.contains('away');const r=vis?sh.getBoundingClientRect():null;
   const above=r?Math.round(innerHeight-r.top+10):18,wide=r&&(innerWidth-r.right)>250,base=r?Math.round(innerHeight-r.bottom):8;
   $('#modes').style.bottom=(wide||(r&&innerWidth-r.right>74)?base:above)+'px';const q=$('#queue');if(wide&&G.mode==='live'){q.style.left=Math.round(r.right+10)+'px';q.style.bottom=base+'px';q.style.maxWidth=Math.max(120,innerWidth-r.right-90)+'px';}else{q.style.left='';q.style.maxWidth='';q.style.bottom=(above-4)+'px';}
   $('#skip').style.bottom=(wide?base+60:above+58)+'px';

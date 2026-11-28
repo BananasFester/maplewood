@@ -27,6 +27,10 @@ const BB={cat:'seating',placing:null,tool:'room',drag:null,floor:'wood',wp:'crea
   refreshWorld();sfx('cash');addParticle({type:'spark',x:p.x*T+8,y:p.y*T,vx:0,vy:-10,life:.8});const keep=!p.moving&&!p.inv;const t=p.type;this.placing=null;$('#place').classList.add('hidden');
   if(keep&&G.money>=d.p&&d.c!=='beds'&&!d.wall&&(d.rug||d.out||d.c==='decor'||d.counter||d.seat||d.plot)){this.startPlace(t);this.placing.x=p.x+d.w<MW?p.x+d.w:p.x;this.placing.y=p.y;this.placing.rot=p.rot;this.placing.variant=p.variant;this.renderPlaceBar();}
   if(G.mode==='buy')this.renderBuy();UI.dirty=true;},
+ // On phones and short screens the Buy or Build panel steps away while an item is being placed or a room dragged,
+ // so it never covers the spot. The place bar (Turn, Cancel, Buy) drops to the bottom; Cancel brings the panel back.
+ syncPanel(){const small=innerWidth<760||innerHeight<560,a=small&&((G.mode==='buy'&&!!this.placing)||(G.mode==='build'&&!!this.drag));
+  if(a===this.away)return;this.away=a;$('#buy').classList.toggle('away',a);$('#build').classList.toggle('away',a);UI.layout();},
  cancel(){this.placing=null;this.drag=null;this.prev=null;$('#place').classList.add('hidden');UI.layout();},
  objTap(o,sx,sy){const d=o.def;if(d.fixed){toast(`The ${d.n.toLowerCase()} stays put`,'home');return;}
   const used=Object.keys(o.users).length||G.people.some(s=>s.inObj&&s.inObj.o===o);const val=o.type==='painting'?(o.state.value||100):Math.round((o.price||d.p)*.7);
