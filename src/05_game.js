@@ -180,6 +180,7 @@ function isYardItem(t){const d=CATALOG[t];return!!(d&&(d.c==='outdoor'||d.fixed)
 function resetState(){TEXTS.length=0;PARTS.length=0;const tb=document.getElementById('toasts');if(tb)tb.innerHTML='';G.time=0;G.people=[];G.rels={};G.objects=[];G.items=[];G.inv=[];G.produce={};G.bills=null;G.timers=[];G.cars=[];G.party=null;G.stats={};G.day=0;G.fish={};G.ext=defaultExt();}
 function makeNeighbors(){for(const n of NEIGHBORS){const p=new Sim(Object.assign({},n,{role:'neighbor'}));p.skills={charisma:ri(50,400),[pick(SKILL_IDS)]:ri(100,900)};G.people.push(p);}}
 function startHousehold(defs,cash,startMin,opts){opts=opts||{};
+ if(SLOT.fresh){SLOT.fresh=false;SLOT.use(SLOT.free());G.tut={done:{}};}SLOT.hold=false;
  resetState();G.time=startMin;G.day=dayOf(startMin);G.season=(G.seasonStart+Math.floor(G.day/7))%4;G.weather='clear';
  let spots;if(opts.lot){const lot=opts.lot;loadLot(lot);refreshWorld();G.lot=lot;G.fresh=lot!=='cottage';ensureTown();G.home=TOWN.lots.find(l=>l.kind==='hart').id;
   spots=lot==='cottage'?[[10,7],[14,12],[12,12],[18,11],[9,12],[16,7]]:lot==='shell'?[[11,11],[13,12],[15,11],[17,12]]:[[12,16],[14,16],[12,18],[15,18]];}
@@ -203,7 +204,20 @@ function startSample(){
 }
 
 // ---------- save / load ----------
-const SAVE_KEY='mapleLane.save.v1';
+// Save slots: each household keeps its own save, so several people can play on one device. Slot 1 keeps the
+// original key, so older saves load as slot 1; slot n saves under SAVE_KEY+'.'+n. SLOT_KEY remembers the last one
+// played. SLOT.hold stops autosaves while the game behind the start menu is only the unplayed sample, and
+// SLOT.fresh makes the next startHousehold() open a new slot instead of replacing the current one.
+const SAVE_KEY='mapleLane.save.v1',SLOT_KEY='mapleLane.slot',MAX_SLOTS=8;
+const SLOT={cur:1,hold:false,fresh:false,
+ key(n){return n===1?SAVE_KEY:SAVE_KEY+'.'+n;},
+ list(){const L=[];try{for(let i=0;i<localStorage.length;i++){const m=/^mapleLane\.save\.v1(?:\.(\d+))?$/.exec(localStorage.key(i)||'');if(m)L.push(m[1]?+m[1]:1);}}catch(e){}return L.sort((a,b)=>a-b);},
+ read(n){try{const s=localStorage.getItem(this.key(n));return s?JSON.parse(s):null;}catch(e){return null;}},
+ free(){const L=this.list();let n=1;while(L.includes(n))n++;return n;},
+ use(n){this.cur=n;try{localStorage.setItem(SLOT_KEY,String(n));}catch(e){}},
+ last(){const L=this.list();let n=0;try{n=+localStorage.getItem(SLOT_KEY);}catch(e){}return L.includes(n)?n:L.length?L[0]:1;},
+ remove(n){try{localStorage.removeItem(this.key(n));}catch(e){}},
+ full(){return this.list().length>=MAX_SLOTS;}};
 const WP_KEYS=Object.keys(WALLPAPERS);
 function serialize(){return{v:1,savedAt:Date.now(),time:G.time,money:G.money,sel:G.sel,rels:G.rels,inv:G.inv,produce:G.produce,bills:G.bills,timers:G.timers,season:G.season,seasonStart:G.seasonStart,weather:G.weather,
  freeWill:G.freeWill,settings:G.settings,stats:G.stats,day:G.day,uid:UID,party:G.party,lot:G.lot,fresh:G.fresh,tut:G.tut,town:G.town,home:G.home,fish:G.fish,ext:G.ext,
@@ -223,13 +237,16 @@ function loadGame(d){
  G.timers=G.timers.filter(t=>t.type!=='partyEnd'&&t.type!=='party');G.started=true;UI.dirty=true;W.groundDirty=true;if(R.cv)setWallsUp(!!G.settings.wallsUp);
 }
 let lastSave=0;
-function autosave(force){if(!G.started)return;const now=performance.now();if(!force&&now-lastSave<20000)return;lastSave=now;
- try{const d=serialize();localStorage.setItem(SAVE_KEY,JSON.stringify(d));CLOUD.pending=d;cloudFlush(force);}catch(e){}}
-function loadLocal(){try{const s=localStorage.getItem(SAVE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
-const CLOUD={ref:null,ok:false,busy:false,pending:null,lastWrite:0};
+function autosave(force){if(!G.started||SLOT.hold)return;const now=performance.now();if(!force&&now-lastSave<20000)return;lastSave=now;let d;
+ try{d=serialize();localStorage.setItem(SLOT.key(SLOT.cur),JSON.stringify(d));}catch(e){if(d&&!autosave.warned){autosave.warned=1;toast('This device is out of room for saves. Delete an old save from the main menu.','frown');}}
+ if(d){CLOUD.pending={d,slot:SLOT.cur};cloudFlush(force);}}
+function loadLocal(){return SLOT.read(SLOT.cur);}
+// cloud saves (claude.ai artifact only): one document per slot
+const CLOUD={db:null,uid:null,ok:false,busy:false,pending:null,lastWrite:0};
+function cloudRef(n){return CLOUD.db.doc('data/users/'+CLOUD.uid+'/save'+(n===1?'':n));}
 async function cloudInit(){try{const c=window.claude;if(!c||!c.use)return;const db=await c.use('db');const user=await c.use('user');if(!db||!user)return;const id=await user.id();if(!id)return;
- CLOUD.ref=db.doc('data/users/'+id+'/save');const snap=await Promise.race([CLOUD.ref.get(),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),10000))]);CLOUD.ok=true;
+ CLOUD.db=db;CLOUD.uid=id;const slot=SLOT.cur;const snap=await Promise.race([cloudRef(slot).get(),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),10000))]);CLOUD.ok=true;if(slot!==SLOT.cur)return;
  if(snap&&snap.exists){const v=snap.data();if(v&&v.json){const d=JSON.parse(v.json);const cur=G.loadedAt||0;if(d.savedAt>cur+60000)UI.offerCloud(d);}}}catch(e){CLOUD.ok=false;}}
-async function cloudFlush(force){if(!CLOUD.ok||!CLOUD.ref||CLOUD.busy||!CLOUD.pending)return;const now=performance.now();if(!force&&now-CLOUD.lastWrite<90000)return;
- CLOUD.busy=true;const d=CLOUD.pending;CLOUD.pending=null;CLOUD.lastWrite=now;
- try{await CLOUD.ref.set({json:JSON.stringify(d),savedAt:d.savedAt,label:DAYS[wday(d.time)]+' '+clockStr(d.time)});}catch(e){if(e&&e.code==='invalid_argument')CLOUD.ok=false;}CLOUD.busy=false;}
+async function cloudFlush(force){if(!CLOUD.ok||!CLOUD.db||CLOUD.busy||!CLOUD.pending)return;const now=performance.now();if(!force&&now-CLOUD.lastWrite<90000)return;
+ CLOUD.busy=true;const{d,slot}=CLOUD.pending;CLOUD.pending=null;CLOUD.lastWrite=now;
+ try{await cloudRef(slot).set({json:JSON.stringify(d),savedAt:d.savedAt,label:DAYS[wday(d.time)]+' '+clockStr(d.time)});}catch(e){if(e&&e.code==='invalid_argument')CLOUD.ok=false;}CLOUD.busy=false;}

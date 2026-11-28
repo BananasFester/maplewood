@@ -10,10 +10,10 @@ function canReach(o,seen){const d=o.def,ok=(x,y)=>inMap(x,y)&&seen[I(x,y)]&&same
 function homeChecks(){const hh=Math.max(1,household().length),acts=(d,a)=>!!(d.acts&&d.acts.includes(a)),seen=reachMap();
  const st=f=>{const L=G.objects.filter(o=>f(o.def));return!L.length?0:L.some(o=>canReach(o,seen))?2:1;};
  const beds=G.objects.filter(o=>acts(o.def,'sleep')),bedCap=beds.filter(o=>canReach(o,seen)).reduce((n,o)=>n+(o.def.w>=2?2:1),0);
- const row=(k,l,s,go)=>({k,l:s===1?l+' (can\'t reach it)':l,ok:s===2,go:s===1?'see:'+k:go});
- return[{k:'room',l:'Walls and a room',ok:W.rooms.length>0,go:'build:room'},{k:'door',l:'A front door',ok:hasFrontDoor(),go:'build:door'},
-  row('bed',hh>1?`Beds for ${hh}`:'A bed',bedCap>=hh?2:beds.length&&!bedCap?1:0,'buy:beds'),row('toilet','A toilet',st(d=>acts(d,'toilet')),'buy:bath'),
-  row('wash','A shower or tub',st(d=>acts(d,'shower')||acts(d,'bath')),'buy:bath'),row('fridge','A fridge',st(d=>!!d.fridge),'buy:kitchen'),row('stove','A stove',st(d=>!!d.stove),'buy:kitchen')];}
+ const row=(k,l,sh,s,go)=>({k,l:s===1?l+' (can\'t reach it)':l,s:s===1?sh+' (blocked)':sh,ok:s===2,go:s===1?'see:'+k:go});
+ return[{k:'room',l:'Walls and a room',s:'Room',ok:W.rooms.length>0,go:'build:room'},{k:'door',l:'A front door',s:'Front door',ok:hasFrontDoor(),go:'build:door'},
+  row('bed',hh>1?`Beds for ${hh}`:'A bed',hh>1?`Beds for ${hh}`:'Bed',bedCap>=hh?2:beds.length&&!bedCap?1:0,'buy:beds'),row('toilet','A toilet','Toilet',st(d=>acts(d,'toilet')),'buy:bath'),
+  row('wash','A shower or tub','Shower or tub',st(d=>acts(d,'shower')||acts(d,'bath')),'buy:bath'),row('fridge','A fridge','Fridge',st(d=>!!d.fridge),'buy:kitchen'),row('stove','A stove','Stove',st(d=>!!d.stove),'buy:kitchen')];}
 function tutGo(go){const[m,k]=go.split(':');if(m==='see'){const f={bed:d=>d.acts&&d.acts.includes('sleep'),toilet:d=>d.acts&&d.acts.includes('toilet'),wash:d=>d.acts&&(d.acts.includes('shower')||d.acts.includes('bath')),fridge:d=>d.fridge,stove:d=>d.stove}[k],o=f&&G.objects.find(o=>f(o.def));if(o)centerOn(o.x*T+8,o.y*T+8);toast('Nobody can get to this. Add a door to its room, or move whatever blocks the way.','door');return;}if(m==='build'){UI.setMode('build');if(G.mode==='build'){BB.tool=k;BB.renderBuild();}}else if(m==='buy'){UI.setMode('buy');if(G.mode==='buy'){BB.cat=k;BB.renderBuy();}}}
 function jobless(){return household().find(s=>!s.job)||null;}
 function tutShowCareer(){UI.setMode('live');if(!UI.open)$('#sexp').click();UI.tab='job';UI.dirty=true;}
@@ -37,12 +37,12 @@ const TOURS={
   {i:'heart',t:'You are all set',b:'Keep needs up, make friends with neighbors walking by, learn skills and climb a career. Press and hold anything if you get stuck.',next:'Start playing'}],
  fresh:[
   {i:'home',t:'Welcome home',b:()=>W.rooms.length?`The house is yours, and you have ${money(G.money)} to furnish it. Time stays paused until you move in.`:`This lot is all yours, and you have ${money(G.money)} to build and furnish a home. Time stays paused until you move in.`,next:true,skip:()=>!G.fresh},
-  {i:'home',t:'Build a room',b:'Pick Room, then drag a box on the grass with one finger. Walls go around the edge and the floor you picked fills the inside.',tg:'#build [data-t="room"]',
+  {i:'home',t:'Build a room',b:'Pick Room, then drag a box on the grass with one finger. Walls go around it and the floor fills the inside.',tg:'#build [data-t="room"]',
    enter:()=>tutGo('build:room'),done:()=>W.rooms.length>0,skip:()=>!G.fresh||W.rooms.length>0},
-  {i:'door',t:'Add a front door',b:'Pick Door, then tap the middle of the wall that faces the street. A stone path to the sidewalk appears on its own.',tg:'#build [data-t="door"]',enter:()=>tutGo('build:door'),done:()=>hasFrontDoor(),skip:()=>!G.fresh||hasFrontDoor()},
-  {i:'hammer',t:'Make it yours',b:'Add rooms for a bathroom and a bedroom, and give each room a door. Then try Windows for daylight, Floors and Wallpaper. Two fingers move the camera. Tap Next when you are done.',tg:'#build .tabsx',next:true,
+  {i:'door',t:'Add a front door',b:'Pick Door, then tap the wall that faces the street. A path to the sidewalk appears on its own.',tg:'#build [data-t="door"]',enter:()=>tutGo('build:door'),done:()=>hasFrontDoor(),skip:()=>!G.fresh||hasFrontDoor()},
+  {i:'hammer',t:'Make it yours',b:'Add a bathroom and a bedroom, each with a door. Try Windows, Floors and Wallpaper too. Tap Next when you are done.',tg:'#build .tabsx',next:true,
    enter:()=>tutGo('build:room'),skip:()=>!G.fresh||G.lot==='shell'},
-  {i:'sofa',t:'Furnish your home',b:'Every home needs a few essentials. Tap one to shop for it, then tap the floor to place it. Tap a placed item to move or sell it.',chk:true,tg:'#buy .items',
+  {i:'sofa',t:'Furnish your home',b:'Tap what you still need to shop for it, then tap the floor to place it.',chk:true,tg:'#buy .items',
    enter:()=>{const c=homeChecks().find(c=>!c.ok&&c.go.startsWith('buy'));tutGo(c?c.go:'buy:beds');},done:()=>homeChecks().every(c=>c.ok),skip:()=>!G.fresh},
   {i:'leaf',t:'Move in',b:'Your home has the basics. Tap the leaf to move in and start the clock.',tg:'#modes [data-m="live"]',done:()=>G.mode==='live'&&!G.fresh,skip:()=>!G.fresh},
   JOB_STEP,
@@ -70,20 +70,32 @@ const TUT={el:null,ring:null,orders:0,tipped:false,base:{},acc:0,sig:'',
  finish(){if(G.tut&&G.tut.s){G.tut.done=G.tut.done||{};G.tut.done[G.tut.s==='movein'?'fresh':G.tut.s]=1;G.tut.s=null;}this.hide();},
  skip(){this.finish();toast('Tour skipped. You can replay it from the menu.','star');},
  hide(){if(!this.el)return;this.el.classList.add('hidden');this.ring.classList.add('hidden');$('#toasts').style.top='';},
- chkHTML(){return`<div class="chk">${homeChecks().map(c=>`<button data-go="${c.go}" class="${c.ok?'ok':''}" ${c.ok?'disabled':''}><span>${c.ok?'✓':'+'}</span>${esc(c.l)}</button>`).join('')}</div>`;},
+ chkHTML(tail){const L=homeChecks(),n=L.filter(c=>c.ok).length;return`<div class="chk"><span class="cn">${n} of ${L.length} done</span>${L.filter(c=>!c.ok).map(c=>`<button data-go="${c.go}"><span>+</span>${esc(c.s)}</button>`).join('')}${tail||''}</div>`;},
  render(){const st=this.cur();if(!st){this.hide();return;}const s=selSim()||household()[0];if(!s)return;const L=this.list();
-  const body=typeof st.b==='function'?st.b(s):st.b,title=typeof st.t==='function'?st.t(s):st.t,nx=st.next===true?'Next':st.next;
-  this.el.classList.toggle('min',!!this.min);this.el.innerHTML=`<div class="th" data-tut="${this.min?'max':''}">${ico(st.i||'star',22)}<b>${esc(title)}</b><span class="tn">${G.tut.i+1} of ${L.length}</span><button class="tmin" data-tut="${this.min?'max':'min'}" aria-label="${this.min?'Show tip':'Hide tip'}">${this.min?'+':'–'}</button></div><p class="tb">${say(body)}</p>${st.chk?this.chkHTML():''}
-   <div class="ta"><button class="lnk" data-tut="skip">Skip tour</button><span class="grow"></span>${st.act?`<button class="btn sm" data-tut="act">${esc(st.act[0])}</button>`:''}${nx?`<button class="btn sm primary" data-tut="next">${esc(nx)}</button>`:''}</div>`;
+  const skip='<button class="lnk" data-tut="skip">Skip tour</button>',body=typeof st.b==='function'?st.b(s):st.b,title=typeof st.t==='function'?st.t(s):st.t,nx=st.next===true?'Next':st.next;
+  this.el.classList.toggle('min',!!this.min);this.el.innerHTML=`<div class="th" data-tut="${this.min?'max':''}">${ico(st.i||'star',22)}<b>${esc(title)}</b><span class="tn">${G.tut.i+1} of ${L.length}</span><button class="tmin" data-tut="${this.min?'max':'min'}" aria-label="${this.min?'Show tip':'Hide tip'}">${this.min?'+':'–'}</button></div><p class="tb">${say(body)}${!st.act&&!nx&&!st.chk?' '+skip:''}</p>${st.chk?this.chkHTML(!st.act&&!nx?skip:''):''}
+   ${st.act||nx?`<div class="ta">${skip}<span class="grow"></span>${st.act?`<button class="btn sm" data-tut="act">${esc(st.act[0])}</button>`:''}${nx?`<button class="btn sm primary" data-tut="next">${esc(nx)}</button>`:''}</div>`:''}`;
   this.el.classList.remove('hidden');this.place();this.frame(0);},
- // card sits above the bottom panel on phones in portrait, and top centre on wide or short screens
+ // In Buy and Build mode the card stays at the top, out of the way of the house and the shop: in the gap between
+ // the top corners when there is room (tablets, landscape), or just under them on a phone. It steps aside while an
+ // item is being placed or a room is being dragged. In Live mode it sits above the bottom panel on phones in
+ // portrait, and top centre on wide or short screens.
  place(){const el=this.el;if(!el||el.classList.contains('hidden'))return;const st=this.cur()||{};const wide=innerWidth>=760||innerHeight<560;
-  el.style.transform='';el.style.left='';el.style.right='';el.style.top='';el.style.bottom='';
-  if(wide){el.style.left='50%';el.style.transform='translateX(-50%)';el.style.top=`calc(env(safe-area-inset-top,0px) + ${innerHeight<560?60:110}px)`;el.style.width=`min(420px,calc(100vw - ${innerWidth>=980?460:innerWidth>=760?300:16}px))`;}
+  el.style.transform='';el.style.left='';el.style.right='';el.style.top='';el.style.bottom='';el.style.width='';el.style.maxHeight='';
+  const shop=G.mode==='buy'||G.mode==='build';el.classList.toggle('shop',shop);
+  el.classList.toggle('aside',shop&&!!(BB.placing||BB.drag));this.ring.classList.toggle('aside',shop&&!!(BB.placing||BB.drag));
+  if(shop){const rs=s=>{const e=$(s);return e&&!e.classList.contains('hidden')?e.getBoundingClientRect():null;};
+   const L=['#clock','#speed'].map(rs).filter(Boolean),Rt=['#moneyPill','#menuBtn','#zoom'].map(rs).filter(Boolean);
+   const lx=Math.max(8,...L.map(r=>r.right))+8,rx=Math.min(innerWidth-8,...Rt.map(r=>r.left))-8,hb=Math.max(0,...L.concat(Rt).map(r=>r.bottom));
+   const panel=rs(G.mode==='buy'?'#buy':'#build'),floor=panel?panel.top-8:innerHeight-8;
+   if(rx-lx>=300){const w=Math.min(440,rx-lx);el.style.left=Math.round(lx+(rx-lx-w)/2)+'px';el.style.width=w+'px';el.style.top='calc(env(safe-area-inset-top,0px) + 8px)';el.style.maxHeight=Math.max(120,Math.round(floor-8))+'px';}
+   else{el.style.left='calc(env(safe-area-inset-left,0px) + 8px)';el.style.top=Math.round(hb+8)+'px';el.style.maxHeight=Math.max(120,Math.round(floor-hb-16))+'px';
+    const md=rs('#modes');el.style.width='min(440px,calc(100vw - 16px))';if(md&&el.getBoundingClientRect().bottom>md.top-8)el.style.width='min(440px,calc(100vw - 76px))';}}
+  else if(wide){el.style.left='50%';el.style.transform='translateX(-50%)';el.style.top=`calc(env(safe-area-inset-top,0px) + ${innerHeight<560?60:110}px)`;el.style.width=`min(420px,calc(100vw - ${innerWidth>=980?460:innerWidth>=760?300:16}px))`;}
   else{el.style.left='calc(env(safe-area-inset-left,0px) + 8px)';el.style.width='min(440px,calc(100vw - 76px))';
    if(st.pos==='top')el.style.top='calc(env(safe-area-inset-top,0px) + 118px)';
    else{const sh=G.mode==='live'?$('#sheet'):G.mode==='buy'?$('#buy'):$('#build');const r=sh&&!sh.classList.contains('hidden')?sh.getBoundingClientRect():null;el.style.bottom=((r?innerHeight-r.top:0)+(G.mode==='live'?62:12))+'px';}}
-  const r=el.getBoundingClientRect(),tb=$('#toasts');tb.style.top=r.top<230?Math.round(r.bottom+8)+'px':'';},
+  const r=el.getBoundingClientRect(),tb=$('#toasts');tb.style.top=r.top<230&&!el.classList.contains('aside')?Math.round(r.bottom+8)+'px':'';},
  rect(){const st=this.cur();if(!st||!st.tg)return null;const t=st.tg;
   if(typeof t==='string'){const e=document.querySelector(t);if(!e)return null;const r=e.getBoundingClientRect();return r.width||r.height?r:null;}
   const box=(x0,y0,x1,y1)=>{const a=worldToScreen(x0,y0),b=worldToScreen(x1,y1),d=R.dpr;return{left:a.x/d,top:a.y/d,width:(b.x-a.x)/d,height:(b.y-a.y)/d};};
@@ -92,8 +104,9 @@ const TUT={el:null,ring:null,orders:0,tipped:false,base:{},acc:0,sig:'',
  frame(dt){if(!this.el||!this.active()||UI.welcomeOn){if(this.el&&!this.el.classList.contains('hidden')&&UI.welcomeOn)this.hide();return;}
   if(this.el.classList.contains('hidden')){this.render();return;}
   const r=this.rect(),g=this.ring;
-  if(r&&r.left+r.width>0&&r.top+r.height>0&&r.left<innerWidth&&r.top<innerHeight&&!UI.modalOpen()){g.classList.remove('hidden');g.style.left=Math.round(r.left-6)+'px';g.style.top=Math.round(r.top-6)+'px';g.style.width=Math.round(r.width+12)+'px';g.style.height=Math.round(r.height+12)+'px';}
+  if(r&&r.left+r.width>0&&r.top+r.height>0&&r.left<innerWidth&&r.top<innerHeight&&!UI.modalOpen()&&!this.el.classList.contains('aside')){g.classList.remove('hidden');g.style.left=Math.round(r.left-6)+'px';g.style.top=Math.round(r.top-6)+'px';g.style.width=Math.round(r.width+12)+'px';g.style.height=Math.round(r.height+12)+'px';}
   else g.classList.add('hidden');
+  const aside=(G.mode==='buy'||G.mode==='build')&&!!(BB.placing||BB.drag);if(aside!==this.el.classList.contains('aside'))this.place();
   this.acc+=dt||0;if(this.acc<.25)return;this.acc=0;const st=this.cur();if(!st)return;
   if(st.done&&!UI.modalOpen()&&st.done(this.base)){setTimeout(()=>{if(this.cur()===st)this.next();},350);this.acc=-1;return;}
   if(st.chk){const sig=homeChecks().map(c=>c.ok?1:0).join('');if(sig!==this.sig){this.sig=sig;this.render();}}

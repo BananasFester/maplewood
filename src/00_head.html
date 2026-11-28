@@ -101,11 +101,14 @@ body.town #zoom [data-z="town"],body.wallsup #zoom [data-z="walls"]{background:v
 #tut .tb{margin:6px 0 0;font-size:14px;line-height:1.38}
 #tut .ta{display:flex;align-items:center;gap:8px;margin-top:8px}
 #tut .lnk{font-size:13px;font-weight:800;color:var(--ink2);text-decoration:underline;text-underline-offset:2px;min-height:40px;padding:0 2px}
-#tut .chk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:8px}
-#tut .chk button{display:flex;align-items:center;gap:6px;min-height:38px;padding:4px 8px;border-radius:10px;border:2px solid var(--edge);background:var(--paper2);font-size:13px;font-weight:800;text-align:left;line-height:1.15}
-#tut .chk button span{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1.5px solid var(--edge);font-size:12px;flex:none}
-#tut .chk button.ok{background:#e4f2dc;border-color:#8fbf7d;color:#3f6b33}
-#tut .chk button.ok span{background:var(--good);color:#fff;border-color:#3f8a35}
+#tut .chk{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:6px}
+#tut .tb .lnk{min-height:0;padding:6px 2px;margin:-6px 0;vertical-align:baseline}#tut .chk .lnk{min-height:30px;margin-left:4px;padding:0 4px;border:0;background:none;border-radius:0}
+#tut .chk .cn{font-size:12px;font-weight:800;color:#3f6b33;margin-right:2px}
+#tut .chk button{display:flex;align-items:center;gap:5px;min-height:34px;padding:3px 9px 3px 5px;border-radius:999px;border:2px solid var(--edge);background:var(--paper2);font-size:13px;font-weight:800;line-height:1.1}
+#tut .chk button span{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1.5px solid var(--edge);font-size:12px;flex:none}
+#tut.shop{overflow-y:auto;transition:opacity .15s}
+#tut.shop .chk button{min-height:30px;font-size:12.5px}#tut.shop .th{font-size:16px}#tut.shop .tb{font-size:13.5px;line-height:1.3;margin-top:4px}#tut.shop .ta{margin-top:4px}#tut.shop .lnk{min-height:34px}#tut.shop .btn.sm{min-height:34px}
+#tut.aside,#tutRing.aside{opacity:0;pointer-events:none}
 #tutRing{position:absolute;z-index:3;border:3px solid var(--acc);border-radius:16px;pointer-events:none;box-shadow:0 0 0 4px rgba(232,102,46,.32);animation:ring 1.3s ease-in-out infinite}
 @keyframes ring{50%{box-shadow:0 0 0 10px rgba(232,102,46,.08)}}
 .lots{display:grid;gap:8px;margin-top:10px}
@@ -208,6 +211,13 @@ body.mouse .btn:not(:disabled):hover,body.mouse .pill button:hover{filter:bright
 .wacts{display:flex;flex-direction:column;gap:8px;margin-top:14px}.wacts .btn{width:100%}.btn.big{min-height:54px;font-size:19px}
 .wopts{display:grid;gap:8px;margin-top:12px}.wopt{display:flex;gap:12px;align-items:center;text-align:left;padding:10px 12px;border:2px solid var(--edge);border-radius:14px;background:var(--paper2);box-shadow:0 2px 0 rgba(51,35,46,.25)}
 .wopt>span{display:flex;flex-direction:column;gap:2px}.wopt b{font-size:17px}.wopt span span{font-size:13px;color:var(--ink2);font-weight:700}.wopt:active{transform:translateY(1px)}body.mouse .wopt:hover{border-color:var(--acc)}
+.wslots{display:grid;gap:8px;margin-top:12px}.wslots .wsave{margin-top:0;padding:0;gap:0;overflow:hidden}
+.wpick{flex:1;min-width:0;display:flex;gap:12px;align-items:center;text-align:left;padding:10px 4px 10px 12px;min-height:64px}.wpick:active{background:rgba(51,35,46,.06)}body.mouse .wpick:hover{background:rgba(232,102,46,.08)}
+.winfo{flex:1;min-width:0;display:flex;flex-direction:column}.winfo b{font-size:16px}.winfo .small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wgo{flex:none;font:800 14px/1 Nunito,sans-serif;color:#fff;background:var(--acc);border-radius:10px;padding:8px 10px;box-shadow:0 2px 0 rgba(51,35,46,.3)}
+.wdel{flex:none;align-self:stretch;width:48px;display:grid;place-items:center;border-left:2px solid var(--edge);opacity:.75}.wdel:active{background:rgba(168,65,46,.12)}body.mouse .wdel:hover{opacity:1;background:rgba(168,65,46,.1)}
+.wnote2{margin:10px 2px 0}
+@media(max-width:440px){.wgo{display:none}.wpick{gap:10px;padding-right:8px}.wslots .wfaces img{width:38px;height:38px}}
 .wwarn{margin:10px 2px 0;color:#a8412e}.wnote{margin:12px 0 0;text-align:center}
 #welcome h1{margin:0;font:700 clamp(32px,9vw,44px)/1.05 "Pixelify Sans",Nunito,sans-serif;letter-spacing:-.5px;color:var(--ink)}
 #welcome h1 img{display:inline-block;vertical-align:-3px;margin-right:6px}

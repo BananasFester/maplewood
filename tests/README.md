@@ -39,7 +39,8 @@ Most checks are printed values rather than asserts, so skim the output for anyth
 | `touch_longpress.py` | Press-and-hold tooltips and tap menus |
 | `pinch_zoom.py` | Pinch zoom on the lot |
 | `turning_and_outside.py` | Turning furniture, no using things through walls, the shower blur, walls up and the Outside tool, lights at night, Male / Female |
-| `start_menu.py` | The start menu: first visit, continuing a save, a new game over a save, Main menu |
+| `start_menu.py` | The start menu: first visit, continuing a save, the new game step, Main menu, three traits each |
+| `save_slots.py` | One save per household: a second household, switching, old saves, deleting, the limit; the small tour card in Buy mode |
 | `desktop_mouse.py` | Mouse and keyboard at 1366x768: hover tips, right-drag camera, click to place, strip scrolling, keys |
 | `zoom_smoothing.py` | Zoom buttons and the WebGL smoothing pass |
 

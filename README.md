@@ -88,9 +88,12 @@ docs/screens/   screenshots
 
 ## Saves
 
-The game autosaves to `localStorage` (`mapleLane.save.v1`). The start menu offers to continue that
-save or start a new game (the Harts, or a household of your own), and asks before a new game
-replaces it. Main menu in the game's menu goes back to it. When it runs as a claude.ai
+The game autosaves to `localStorage`. Each household has its own save slot (up to 8), so several
+people can play on one device: the first slot keeps the original key `mapleLane.save.v1` and slot
+*n* uses `mapleLane.save.v1.n`. The start menu lists every save (household, where they live, day,
+money, last played) to pick from, and starts new games (the Harts, or a household of your own) in
+a new slot, so nothing gets replaced. A save is only removed with its Delete button, after a
+warning. Main menu in the game's menu goes back to it. When it runs as a claude.ai
 artifact it also keeps a copy in the artifact's storage, so a save follows the player between
 devices. Anywhere else that part is skipped.
 

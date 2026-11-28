@@ -199,14 +199,14 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
   <div class="sec">Display</div><div class="line" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${GLS.ok?`<button class="btn sm ${R.smooth?'primary':''}" data-x="smooth">Smooth art ${R.smooth?'on':'off'}</button><span class="small">${R.smooth?'Rounded, easy-to-read pixels':'Classic crisp pixels'}</span>`:'<span class="small">Smooth art needs WebGL, which this browser has turned off.</span>'}</div>
   <div class="sec">Free will</div><div style="display:flex;gap:8px;flex-wrap:wrap">${[['full','Everyone'],['others','All but selected'],['off','Off']].map(([k,l])=>`<button class="btn sm ${fw===k?'primary':''}" data-f="${k}">${l}</button>`).join('')}</div>
   <p class="small">With free will, people look after their own needs when you leave them idle.</p>
-  <div class="actions" style="justify-content:flex-start"><button class="btn" data-x="help">How to play</button><button class="btn" data-x="tour">Replay tour</button><button class="btn" data-x="cas">New household</button><button class="btn" data-x="harts">Restart with the Harts</button><button class="btn good" data-x="save">Save now</button><button class="btn" data-x="title">Main menu</button>${this.installEvt?'<button class="btn" data-x="install">Install as an app</button>':''}</div>
+  <div class="actions" style="justify-content:flex-start"><button class="btn" data-x="help">How to play</button><button class="btn" data-x="tour">Replay tour</button><button class="btn" data-x="cas">New household</button><button class="btn" data-x="harts">Play the Harts</button><button class="btn good" data-x="save">Save now</button><button class="btn" data-x="title">Main menu</button>${this.installEvt?'<button class="btn" data-x="install">Install as an app</button>':''}</div>
   <div class="actions"><button class="btn primary" id="mx">Back to the game</button></div>`,()=>{});
   $('#mx').onclick=()=>this.closeModal();
   $('#mcard').onclick=e=>{const b=e.target.closest('button');if(!b)return;const x=b.dataset.x;
    if(b.dataset.f){G.freeWill=b.dataset.f;this.menu();}
    if(x==='music'){G.settings.music=!G.settings.music;AU.init();AU.apply();this.menu();}if(x==='sfx'){G.settings.sfx=!G.settings.sfx;this.menu();}if(x==='nextsong'){MUS.skip();setTimeout(()=>{if(this.modalOpen())this.menu();},80);}if(x==='smooth'){G.settings.smooth=!R.smooth;applySmooth(G.settings.smooth);if(G.mode==='buy')BB.renderBuy();this.menu();}
    if(x==='save'){autosave(true);toast('Game saved','star');this.closeModal();}if(x==='install'&&this.installEvt){const ev=this.installEvt;this.installEvt=null;this.closeModal();ev.prompt();}if(x==='title'){autosave(true);G.loadedAt=Date.now();this.closeModal();this.welcome('continue');}if(x==='help')this.help();if(x==='tour'){this.closeModal();TUT.start(G.fresh?'fresh':'harts',true);}
-   if(x==='cas'){this.closeModal();this.cas('new');}if(x==='harts')this.confirm('Restart with the Harts?','This replaces your current household and house.','Restart',()=>{startSample();centerHome();autosave(true);});};},
+   if(x==='cas'){autosave(true);this.closeModal();if(SLOT.full()){toast(`There's room for ${MAX_SLOTS} saves. Delete one from the main menu first.`,'frown');return;}SLOT.fresh=true;this.cas('new');}if(x==='harts'){if(SLOT.full()){toast(`There's room for ${MAX_SLOTS} saves. Delete one from the main menu first.`,'frown');return;}this.confirm('Play the Harts?',`They get a new save of their own. The ${esc(household()[0].last)} household stays saved.`,'Play the Harts',()=>{autosave(true);SLOT.fresh=true;startSample();centerHome();autosave(true);TUT.start('harts');});}};},
  help(){const rows=[[ico('leaf',24,'',{o:'#6fbd52'}),'Tap furniture to choose what your person does. Actions line up at the top left; tap one to cancel it.'],
    [ico('hammer',24),'In Build mode, Room draws four walls and a floor in one drag. Add a door so people can get in.'],
    [ico('walk',24),'Tap the floor to walk there. Drag to look around. Pinch, scroll or use the magnifier buttons to zoom.'],
@@ -221,26 +221,46 @@ const UI={dirty:true,tab:'mood',open:false,t:0,toasts:[],mq:[],casSt:null,
   <div class="actions"><button class="btn primary" id="mx">Got it</button></div>`,()=>{});$('#mx').onclick=()=>this.closeModal();},
  offerCloud(d){this.queueModal(()=>this.modal(`<h2>Newer save found</h2><p>Your account has a saved game from ${esc(DAYS[wday(d.time)])} ${esc(clockStr(d.time))}, day ${dayOf(d.time)+1}, with ${money(d.money)}. Load it?</p><div class="actions"><button class="btn" id="mn">Keep this one</button><button class="btn primary" id="my">Load it</button></div>`,()=>{}));
   setTimeout(()=>{const y=$('#my'),n=$('#mn');if(y)y.onclick=()=>{loadGame(d);G.loadedAt=d.savedAt;centerHome();this.closeModal();toast('Loaded your saved game','star');};if(n)n.onclick=()=>this.closeModal();},80);},
- // the start menu: continue the saved game, or start a new one (the Harts, or a household of your own)
- welcome(kind,step){const el=$('#welcome'),has=kind==='continue',hh=household(),last=hh[0]?hh[0].last:'';this.welcomeOn=true;G.paused=true;this.ctxClose();
+ // the start menu: every saved household is listed, so each player can pick their own. A new game gets its own
+ // save, and Delete (with a warning) frees a spot. Step 'new' shows the new game choices.
+ welcome(kind,step){const el=$('#welcome'),saves=this.saveList(),has=saves.length>0;this.welcomeOn=true;G.paused=true;this.ctxClose();SLOT.fresh=false;
   const title=`<h1 class="px">${ico('leaf',32,'',{o:'#e8662e'})}Maplewood</h1>`;let body;
-  if(has&&step!=='new'){let where='';try{const l=homeLot();where=l?`${lotName(l)}, ${TOWN.name}`:'';}catch(_){}
-   const faces=hh.map(p=>`<img src="${pcanvas(p).toDataURL()}" alt="" width="44" height="44">`).join('');
-   body=`<p class="wsub">Welcome back.</p><div class="wsave"><div class="wfaces">${faces}</div><div class="grow"><b>The ${esc(last)} household</b>
-    <div class="small">${esc(hh.map(p=>p.first).join(', '))}${where?' · '+esc(where):''}</div>
-    <div class="small">Day ${dayOf(G.time)+1} · ${DAYS[wday(G.time)]} ${clockStr(G.time)} · ${money(G.money)}</div>${G.loadedAt?`<div class="small">Last played ${esc(agoText(G.loadedAt))}</div>`:''}</div></div>
-    <div class="wacts"><button class="btn primary big" id="wp">Continue</button><button class="btn" id="wn">New game</button></div>`;}
+  if(has&&step!=='new'){
+   body=`<p class="wsub">${saves.length>1?'Welcome back. Who is playing?':'Welcome back.'}</p><div class="wslots">${saves.map((v,i)=>`<div class="wsave">
+    <button class="wpick"${i?'':' id="wp"'} data-slot="${v.n}" data-tip="wel:slot" aria-label="Play the ${esc(v.last)} household"><span class="wfaces">${v.faces}</span><span class="winfo"><b>The ${esc(v.last)} household</b>
+    <span class="small">${esc(v.firsts)}${v.where?' · '+esc(v.where):''}</span><span class="small">Day ${v.day} · ${money(v.money)}${v.at?' · '+esc(agoText(v.at)):''}</span></span><span class="wgo">Play</span></button>
+    <button class="wdel" data-del="${v.n}" data-tip="wel:del" aria-label="Delete the ${esc(v.last)} household">${ico('remove',22)}</button></div>`).join('')}</div>
+    <div class="wacts"><button class="btn${saves.length>=MAX_SLOTS?' off':''}" id="wn" data-tip="wel:new">New game</button></div>`;}
   else body=`<p class="wsub">${has?'Start a new game':esc(say('Meet Jamie and Alex Hart, just settling in on Maple Lane in the town of Maplewood this fall. Tap anything in the house to give them something to do, or start fresh with people of your own.'))}</p>
     <div class="wopts"><button class="wopt" id="wp">${ico('home',28)}<span><b>Play the Harts</b><span>A furnished cottage on Maple Lane, ready to move in.</span></span></button>
     <button class="wopt" id="wn">${ico('people',28)}<span><b>Create a household</b><span>Make your own people, then pick a home in a brand new town.</span></span></button></div>
-    ${has?`<p class="small wwarn">A new game replaces your saved game with the ${esc(last)} household.</p><div class="wacts"><button class="btn" id="wb">Back</button></div>`:''}`;
-  el.innerHTML=`<div class="wcard card">${title}${body}<p class="small wnote">Your game saves by itself in this browser, on this device.</p></div>`;
+    ${has?`<p class="small wnote2">It gets its own save. Your other saves stay as they are.</p><div class="wacts"><button class="btn" id="wb">Back</button></div>`:''}`;
+  el.innerHTML=`<div class="wcard card">${title}${body}<p class="small wnote">${has?`Each household saves by itself on this device. There's room for ${MAX_SLOTS}.`:'Your game saves by itself in this browser, on this device.'}</p></div>`;
   el.classList.remove('hidden');$('#sheet').classList.add('hidden');document.body.classList.add('wel');
-  if(has&&step!=='new'){$('#wp').onclick=()=>{AU.init();sfx('good');this.hideWelcome();};$('#wn').onclick=()=>{AU.init();sfx('click');this.welcome('continue','new');};return;}
-  const go=fn=>{AU.init();if(has)this.confirm('Start a new game?',`Your saved game with the ${esc(last)} household will be replaced.`,'Start new game',fn);else fn();};
-  $('#wp').onclick=()=>go(()=>{sfx('good');if(has){startSample();centerHome();autosave(true);}this.hideWelcome();TUT.start('harts');});
-  $('#wn').onclick=()=>go(()=>{this.hideWelcome();this.cas('new',null,{back:has?'continue':'new'});});
+  if(has&&step!=='new'){
+   el.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{AU.init();this.playSlot(+b.dataset.slot);});
+   el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{AU.init();sfx('click');const n=+b.dataset.del,v=saves.find(x=>x.n===n);
+    this.confirm(`Delete the ${esc(v.last)} household?`,`${esc(v.firsts)} and everything in this save will be gone for good. This can't be undone.`,'Delete',()=>this.deleteSlot(n));});
+   $('#wn').onclick=()=>{AU.init();if(SLOT.full()){sfx('bad');toast(`There's room for ${MAX_SLOTS} saves. Delete one to start a new game.`,'frown');return;}sfx('click');this.welcome('continue','new');};return;}
+  // a new game opens its own save; the very first game uses the first one
+  $('#wp').onclick=()=>{AU.init();sfx('good');if(has||SLOT.hold){if(has)SLOT.fresh=true;startSample();centerHome();autosave(true);}this.hideWelcome();TUT.start('harts');};
+  $('#wn').onclick=()=>{AU.init();this.hideWelcome();SLOT.fresh=has;this.cas('new',null,{back:has?'continue':'new'});};
   if(has)$('#wb').onclick=()=>{sfx('click');this.welcome('continue');};},
+ // what the start menu shows for each save, most recently played first
+ saveList(){const out=[],towns={};
+  for(const n of SLOT.list()){const d=SLOT.read(n);if(!d||!d.people)continue;const hh=d.people.filter(p=>p.role==='household');if(!hh.length)continue;
+   let where='';try{const seed=(d.town&&d.town.seed)||2611;const T2=towns[seed]||(towns[seed]=TOWN&&TOWN.seed===seed?TOWN:genTown(seed));const l=T2.lots.find(l=>l.id===d.home);where=l?`${lotName(l)}, ${T2.name}`:T2.name;}catch(_){}
+   const faces=hh.slice(0,4).map((p,i)=>{let src='';try{const app=Object.assign({skin:1,hair:'short',hairC:'#4a2f22',top:'#4f7fd6',topS:'tee',bot:'#2f3e5c',botS:'pants',shoes:'#3a2a25',beard:0},p.app);src=pcanvas({id:'sv'+n+'_'+i,app,appKey:'sv'+JSON.stringify(app),_cols:null}).toDataURL();}catch(_){}return`<img src="${src}" alt="" width="44" height="44">`;}).join('');
+   out.push({n,last:hh[0].last,firsts:hh.map(p=>p.first).join(', '),where,faces,day:(d.day!=null?d.day:dayOf(d.time))+1,money:d.money,at:d.savedAt});}
+  return out.sort((a,b)=>(b.at||0)-(a.at||0));},
+ playSlot(n){if(n===SLOT.cur&&!SLOT.hold&&G.started){sfx('good');this.hideWelcome();return;}
+  const d=SLOT.read(n);try{if(!d)throw new Error('empty save');BB.cancel();G.mode='live';['#buy','#build','#place'].forEach(s=>$(s).classList.add('hidden'));$('#queue').classList.remove('hidden');
+   loadGame(d);SLOT.use(n);SLOT.hold=false;G.loadedAt=d.savedAt||0;TUT.hide();centerHome();sfx('good');this.hideWelcome();}
+  catch(e){console.error('load failed',e);sfx('bad');toast('That save could not be opened.','frown');this.welcome('continue');}},
+ deleteSlot(n){SLOT.remove(n);
+  if(n===SLOT.cur){const L=SLOT.list();let ok=false;if(L.length){const d=SLOT.read(L[0]);try{loadGame(d);SLOT.use(L[0]);G.loadedAt=d.savedAt||0;ok=true;}catch(e){}}
+   if(!ok){startSample();SLOT.use(SLOT.free());SLOT.hold=true;}centerHome();}
+  toast('Save deleted','star');this.welcome(SLOT.list().length?'continue':'new');},
  hideWelcome(){this.welcomeOn=false;G.paused=false;document.body.classList.remove('wel');$('#welcome').classList.add('hidden');if(G.mode==='live')$('#sheet').classList.remove('hidden');this.dirty=true;this.layout();
   if(G.fresh&&G.mode==='live')this.setMode(G.lot==='shell'?'buy':'build');
   setTimeout(()=>{if(TUT.active())return;try{if(localStorage.getItem('mapleLane.tipHint'))return;localStorage.setItem('mapleLane.tipHint','1');}catch(_){}toast('Tip: press and hold anything to see what it is and what it does.','star');},1800);},
@@ -282,7 +302,7 @@ UI.renderCas=function(){const st=this.casSt,m=st.members[st.cur],a=m.app,el=$('#
   if(b.dataset.rot){const ds=['down','left','up','right'];st.dir=ds[(ds.indexOf(st.dir)+(+b.dataset.rot)+4)%4];this.drawCasPrev();return;}
   if(b.dataset.mem){if(b.dataset.mem==='add'){st.members.push(randomPerson(st.members[0].last));st.cur=st.members.length-1;}else if(b.dataset.mem==='del'){st.members.splice(st.cur,1);st.cur=0;}else st.cur=+b.dataset.mem;this.renderCas();return;}
   const x=b.dataset.x;if(x==='rand'){m.app=randomLook(bodyOf(m.app));if(st.mode==='new')m.traits=randomTraits();if(st.mode==='new'&&!m.first)m.first=pick(bodyOf(m.app)==='f'?FIRSTS_F:FIRSTS_M);this.renderCas();}
-  if(x==='cancel'){$('#cas').classList.add('hidden');this.casSt=null;if(st.back)this.welcome(st.back);}
+  if(x==='cancel'){$('#cas').classList.add('hidden');this.casSt=null;SLOT.fresh=false;if(st.back)this.welcome(st.back);}
   if(x==='done'&&st.mode==='new'){const miss=st.members.findIndex(mm=>mm.traits.length<3);if(miss>=0){st.cur=miss;st.need=1;sfx('bad');this.renderCas();const L=$('#ctl');if(L)L.scrollIntoView({behavior:'smooth',block:'center'});return;}}
   if(x==='done'){if(st.mode==='edit'){const s=st.sim;s.app=Object.assign({},m.app);s.first=(m.first||s.first).trim().slice(0,14);s.last=(m.last||s.last).trim().slice(0,16);s.refreshApp();$('#cas').classList.add('hidden');this.casSt=null;UI.dirty=true;return;}
    for(const mm of st.members){mm.first=(mm.first||pick(FIRSTS)).trim().slice(0,14)||pick(FIRSTS);mm.last=(mm.last||st.members[0].last||pick(LASTS)).trim().slice(0,16);if(mm.traits.length<3){const fill=randomTraits().filter(t=>!mm.traits.includes(t)&&!mm.traits.some(x=>TRAITS[x].opp===t||TRAITS[t].opp===x));while(mm.traits.length<3&&fill.length)mm.traits.push(fill.shift());}}
